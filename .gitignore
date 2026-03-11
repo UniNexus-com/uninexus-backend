@@ -1,0 +1,7 @@
+[OperationSystems]
+/bin/
+/obj/
+.vs/
+.user
+.env
+*.log
