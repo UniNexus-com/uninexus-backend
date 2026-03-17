@@ -10,9 +10,9 @@ namespace CleanArchitecture.Core.Interfaces
         Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, string ipAddress);
         Task<string> RegisterAsync(RegisterRequest request, string origin);
         Task<string> ConfirmEmailAsync(string userId, string code);
-        Task<EmailRequest> ForgotPassword(ForgotPasswordRequest model, string origin);
-        Task<string> ResetPassword(ResetPasswordRequest model);
+        Task LogoutAsync(string refreshToken, string ipAddress);
+        Task ForgotPasswordAsync(ForgotPasswordRequest model, string origin);
+        Task<string> ResetPasswordAsync(ResetPasswordRequest model);
         Task<AuthenticationResponse> RefreshTokenAsync(string token, string ipAddress);
-        Task RevokeTokenAsync(string token, string ipAddress);
     }
 }

@@ -38,7 +38,7 @@
   },
   {
     "ContainingType": "CleanArchitecture.WebApi.Controllers.AccountController",
-    "Method": "ForgotPassword",
+    "Method": "ForgotPasswordAsync",
     "RelativePath": "api/Account/forgot-password",
     "HttpMethod": "POST",
     "IsController": true,
@@ -54,18 +54,22 @@
   },
   {
     "ContainingType": "CleanArchitecture.WebApi.Controllers.AccountController",
-    "Method": "RefreshToken",
+    "Method": "LogoutAsync",
+    "RelativePath": "api/Account/logout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CleanArchitecture.WebApi.Controllers.AccountController",
+    "Method": "RefreshTokenAsync",
     "RelativePath": "api/Account/refresh-token",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
-    "Parameters": [
-      {
-        "Name": "token",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -86,7 +90,7 @@
   },
   {
     "ContainingType": "CleanArchitecture.WebApi.Controllers.AccountController",
-    "Method": "ResetPassword",
+    "Method": "ResetPasswordAsync",
     "RelativePath": "api/Account/reset-password",
     "HttpMethod": "POST",
     "IsController": true,
@@ -95,22 +99,6 @@
       {
         "Name": "model",
         "Type": "CleanArchitecture.Core.DTOs.Account.ResetPasswordRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "CleanArchitecture.WebApi.Controllers.AccountController",
-    "Method": "RevokeToken",
-    "RelativePath": "api/Account/revoke-token",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "token",
-        "Type": "System.String",
         "IsRequired": true
       }
     ],

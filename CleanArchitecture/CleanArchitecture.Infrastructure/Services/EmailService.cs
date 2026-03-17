@@ -29,22 +29,24 @@ namespace CleanArchitecture.Infrastructure.Services
             {
                 // create message
                 var email = new MimeMessage();
-                email.Sender = MailboxAddress.Parse(request.From ?? _mailSettings.EmailFrom);
+                email.Sender = MailboxAddress.Parse(request.From ?? _mailSettings.From);
                 email.To.Add(MailboxAddress.Parse(request.To));
                 email.Subject = request.Subject;
+
                 var builder = new BodyBuilder();
                 builder.HtmlBody = request.Body;
                 email.Body = builder.ToMessageBody();
+                
                 using var smtp = new SmtpClient();
-                smtp.Connect(_mailSettings.SmtpHost, _mailSettings.SmtpPort, SecureSocketOptions.StartTls);
-                smtp.Authenticate(_mailSettings.SmtpUser, _mailSettings.SmtpPass);
+                await smtp.ConnectAsync(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(_mailSettings.UserName, _mailSettings.Password);
                 await smtp.SendAsync(email);
-                smtp.Disconnect(true);
+                await smtp.DisconnectAsync(true);
                 
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex.Message, ex);
+                _logger.LogError(ex, "Email could not sent: {Message}", ex.Message);
                 throw new ApiException(ex.Message);
             }
         }

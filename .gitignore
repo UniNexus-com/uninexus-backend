@@ -5,3 +5,5 @@
 .user
 .env
 *.log
+
+appsettings.Development.json

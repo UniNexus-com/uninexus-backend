@@ -16,14 +16,19 @@ namespace CleanArchitecture.Infrastructure.Contexts
         private readonly IDateTimeService _dateTime;
         private readonly IAuthenticatedUserService _authenticatedUser;
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IDateTimeService dateTime = null, IAuthenticatedUserService authenticatedUser = null) : base(options)
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            IDateTimeService dateTime = null,
+            IAuthenticatedUserService authenticatedUser = null) : base(options)
         {
             ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             _dateTime = dateTime;
             _authenticatedUser = authenticatedUser;
         }
 
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             if (_dateTime != null)
             {
@@ -47,15 +52,17 @@ namespace CleanArchitecture.Infrastructure.Contexts
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(builder); // en başa taşındı
+            base.OnModelCreating(builder);
 
+
+            // -- Application User -----
             builder.Entity<ApplicationUser>(entity =>
             {
                 entity.ToTable(name: "users");
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.StudentNumber)
-                                                     .HasMaxLength(11)
-                                                     .IsRequired(false);
+                    .HasMaxLength(11)
+                    .IsRequired(false);
                 entity.HasIndex(e => e.StudentNumber).IsUnique();
 
                 entity.HasMany(e => e.RefreshTokens)
@@ -64,21 +71,50 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .IsRequired()
                     .OnDelete(DeleteBehavior.Cascade);
             });
+
+            // -- Refresh Token -----
             builder.Entity<RefreshToken>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.ToTable(name: "refresh_tokens");
-                entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.Token).HasColumnName("token_hash").IsRequired();
-                entity.Property(e => e.ApplicationUserId).HasColumnName("application_user_id").IsRequired();
-                entity.Property(e => e.Platform).HasColumnName("platform");
-                entity.Property(e => e.Expires).HasColumnName("expires_at").IsRequired();
-                entity.Property(e => e.Created).HasColumnName("created_at").IsRequired();
-                entity.Property(e => e.CreatedByIp).HasColumnName("created_by_ip").IsRequired();
-                entity.Property(e => e.Revoked).HasColumnName("revoked_at");
-                entity.Property(e => e.RevokedByIp).HasColumnName("revoked_by_ip");
-                entity.Property(e => e.ReplacedByToken).HasColumnName("replaced_by_token");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id");
+
+                entity.Property(e => e.TokenHash)
+                    .HasColumnName("token_hash")
+                    .IsRequired();
+
+                entity.Property(e => e.ApplicationUserId).
+                    HasColumnName("application_user_id").
+                    IsRequired();
+                entity.Property(e => e.Platform)
+                    .HasColumnName("platform");
+
+                entity.Property(e => e.ExpiresAt)
+                    .HasColumnName("expires_at")
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnName("created_at")
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedByIp)
+                    .HasColumnName("created_by_ip")
+                    .IsRequired();
+
+                entity.Property(e => e.RevokedAt)
+                .HasColumnName("revoked_at");
+
+                entity.Property(e => e.RevokedByIp)
+                .HasColumnName("revoked_by_ip");
+
+                entity.Property(e => e.ReplacedByToken)
+                .HasColumnName("replaced_by_token");
             });
+
+
+            // -- Identity Tables -----
             builder.Entity<IdentityRole>(entity =>
             {
                 entity.ToTable(name: "roles");
