@@ -13,23 +13,19 @@ namespace CleanArchitecture.Infrastructure.Seeds
             //Seed Default User
             var defaultUser = new ApplicationUser
             {
-                UserName = "superadmin",
-                Email = "superadmin@gmail.com",
-                FirstName = "Mukesh",
-                LastName = "Murugan",
+                UserName = "sksadmin",
+                Email = "admin@akdeniz.edu.tr",
+                FullName = "SKS Admin",
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true
             };
-            if (userManager.Users.All(u => u.Id != defaultUser.Id))
+            if (userManager.Users.All(u => u.UserName != defaultUser.UserName))
             {
                 var user = await userManager.FindByEmailAsync(defaultUser.Email);
                 if (user == null)
                 {
-                    await userManager.CreateAsync(defaultUser, "123Pa$$word!");
-                    await userManager.AddToRoleAsync(defaultUser, Roles.Basic.ToString());
-                    await userManager.AddToRoleAsync(defaultUser, Roles.Moderator.ToString());
-                    await userManager.AddToRoleAsync(defaultUser, Roles.Admin.ToString());
-                    await userManager.AddToRoleAsync(defaultUser, Roles.SuperAdmin.ToString());
+                    await userManager.CreateAsync(defaultUser, "Admin123!");
+                    await userManager.AddToRoleAsync(defaultUser, Roles.SKS_ADMIN.ToString());
                 }
 
             }

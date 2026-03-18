@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CleanArchitecture.Core.DTOs.Account;
 
 namespace CleanArchitecture.Infrastructure.Contexts
 {
@@ -15,80 +16,129 @@ namespace CleanArchitecture.Infrastructure.Contexts
         private readonly IDateTimeService _dateTime;
         private readonly IAuthenticatedUserService _authenticatedUser;
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IDateTimeService dateTime, IAuthenticatedUserService authenticatedUser) : base(options)
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            IDateTimeService dateTime = null,
+            IAuthenticatedUserService authenticatedUser = null) : base(options)
         {
             ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             _dateTime = dateTime;
             _authenticatedUser = authenticatedUser;
         }
 
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Product> Products { get; set; }
-
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            foreach (var entry in ChangeTracker.Entries<AuditableBaseEntity>())
+            if (_dateTime != null)
             {
-                switch (entry.State)
+
+                foreach (var entry in ChangeTracker.Entries<AuditableBaseEntity>())
                 {
-                    case EntityState.Added:
-                        entry.Entity.Created = _dateTime.NowUtc;
-                        entry.Entity.CreatedBy = _authenticatedUser.UserId;
-                        break;
-                    case EntityState.Modified:
-                        entry.Entity.LastModified = _dateTime.NowUtc;
-                        entry.Entity.LastModifiedBy = _authenticatedUser.UserId;
-                        break;
+                    switch (entry.State)
+                    {
+                        case EntityState.Added:
+                            entry.Entity.Created = _dateTime.NowUtc;
+                            entry.Entity.CreatedBy = _authenticatedUser.UserId;
+                            break;
+                        case EntityState.Modified:
+                            entry.Entity.LastModified = _dateTime.NowUtc;
+                            entry.Entity.LastModifiedBy = _authenticatedUser.UserId;
+                            break;
+                    }
                 }
             }
             return base.SaveChangesAsync(cancellationToken);
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            base.OnModelCreating(builder);
 
+
+            // -- Application User -----
             builder.Entity<ApplicationUser>(entity =>
             {
-                entity.ToTable(name: "User");
+                entity.ToTable(name: "users");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.StudentNumber)
+                    .HasMaxLength(11)
+                    .IsRequired(false);
+                entity.HasIndex(e => e.StudentNumber).IsUnique();
+
+                entity.HasMany(e => e.RefreshTokens)
+                    .WithOne()
+                    .HasForeignKey(rt => rt.ApplicationUserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // -- Refresh Token -----
+            builder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.ToTable(name: "refresh_tokens");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id");
+
+                entity.Property(e => e.TokenHash)
+                    .HasColumnName("token_hash")
+                    .IsRequired();
+
+                entity.Property(e => e.ApplicationUserId).
+                    HasColumnName("application_user_id").
+                    IsRequired();
+                entity.Property(e => e.Platform)
+                    .HasColumnName("platform");
+
+                entity.Property(e => e.ExpiresAt)
+                    .HasColumnName("expires_at")
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnName("created_at")
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedByIp)
+                    .HasColumnName("created_by_ip")
+                    .IsRequired();
+
+                entity.Property(e => e.RevokedAt)
+                .HasColumnName("revoked_at");
+
+                entity.Property(e => e.RevokedByIp)
+                .HasColumnName("revoked_by_ip");
+
+                entity.Property(e => e.ReplacedByToken)
+                .HasColumnName("replaced_by_token");
+            });
+
+
+            // -- Identity Tables -----
             builder.Entity<IdentityRole>(entity =>
             {
-                entity.ToTable(name: "Role");
+                entity.ToTable(name: "roles");
             });
             builder.Entity<IdentityUserRole<string>>(entity =>
             {
-                entity.ToTable("UserRoles");
+                entity.ToTable("user_roles");
             });
-
             builder.Entity<IdentityUserClaim<string>>(entity =>
             {
-                entity.ToTable("UserClaims");
+                entity.ToTable("user_claims");
             });
-
             builder.Entity<IdentityUserLogin<string>>(entity =>
             {
-                entity.ToTable("UserLogins");
+                entity.ToTable("user_logins");
             });
-
             builder.Entity<IdentityRoleClaim<string>>(entity =>
             {
-                entity.ToTable("RoleClaims");
-
+                entity.ToTable("role_claims");
             });
-
             builder.Entity<IdentityUserToken<string>>(entity =>
             {
-                entity.ToTable("UserTokens");
+                entity.ToTable("user_tokens");
             });
-
-            //All Decimals will have 18,6 Range
-            foreach (var property in builder.Model.GetEntityTypes()
-            .SelectMany(t => t.GetProperties())
-            .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
-            {
-                property.SetColumnType("decimal(18,6)");
-            }
-            base.OnModelCreating(builder);
         }
     }
 }

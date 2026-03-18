@@ -4,11 +4,9 @@ namespace CleanArchitecture.Core.DTOs.Account
 {
     public class RegisterRequest
     {
-        [Required]
-        public string FirstName { get; set; }
 
         [Required]
-        public string LastName { get; set; }
+        public string FullName { get; set; }
 
         [Required]
         [EmailAddress]
@@ -18,7 +16,11 @@ namespace CleanArchitecture.Core.DTOs.Account
         public string UserName { get; set; }
 
         [Required]
-        [MinLength(6)]
+        [MinLength(11)]
+        public string StudentNumber { get; set; }
+
+        [Required]
+        [MinLength(8)]
         public string Password { get; set; }
 
         [Required]

@@ -1,0 +1,9 @@
+[OperationSystems]
+/bin/
+/obj/
+.vs/
+.user
+.env
+*.log
+
+appsettings.Development.json

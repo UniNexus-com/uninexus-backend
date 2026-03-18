@@ -2,9 +2,8 @@
 {
     public enum Roles
     {
-        SuperAdmin,
-        Admin,
-        Moderator,
-        Basic
+        STUDENT,
+        CLUB_LEADER,
+        SKS_ADMIN
     }
 }

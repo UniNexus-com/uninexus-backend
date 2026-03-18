@@ -1,4 +1,5 @@
 using CleanArchitecture.Core;
+using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Infrastructure;
 using CleanArchitecture.Infrastructure.Models;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +75,8 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
+        var result = await roleManager.CreateAsync(new IdentityRole(Roles.SKS_ADMIN.ToString()));
+
         await CleanArchitecture.Infrastructure.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
         await CleanArchitecture.Infrastructure.Seeds.DefaultSuperAdmin.SeedAsync(userManager, roleManager);
         await CleanArchitecture.Infrastructure.Seeds.DefaultBasicUser.SeedAsync(userManager, roleManager);
@@ -82,10 +86,6 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Log.Warning(ex, "An error occurred seeding the DB");
-    }
-    finally
-    {
-        Log.CloseAndFlush();
     }
 }
 
