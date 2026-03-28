@@ -1,9 +1,49 @@
-[OperationSystems]
-/bin/
-/obj/
+# .NET Core
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
 .vs/
-.user
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.cache
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Environment and Logs
 .env
 *.log
-
 appsettings.Development.json
