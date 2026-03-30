@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +17,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         private readonly IAuthenticatedUserService _authenticatedUser;
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Event> Events { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -111,6 +112,20 @@ namespace CleanArchitecture.Infrastructure.Contexts
 
                 entity.Property(e => e.ReplacedByToken)
                 .HasColumnName("replaced_by_token");
+            });
+
+            // -- Events -----
+            builder.Entity<Event>(entity =>
+            {
+                entity.ToTable(name: "events");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Title).HasColumnName("title").IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.StartDate).HasColumnName("start_date").IsRequired();
+                entity.Property(e => e.EndDate).HasColumnName("end_date").IsRequired();
+                entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(200);
+                entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
             });
 
 
