@@ -18,6 +18,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<Club> Clubs { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -114,6 +115,22 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 .HasColumnName("replaced_by_token");
             });
 
+            // -- Clubs -----
+            builder.Entity<Club>(entity =>
+            {
+                entity.ToTable(name: "clubs");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.LogoUrl).HasColumnName("logo_url").HasMaxLength(500);
+                entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+                entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                entity.Property(e => e.Created).HasColumnName("created");
+                entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                entity.Property(e => e.LastModified).HasColumnName("last_modified");
+            });
+
             // -- Events -----
             builder.Entity<Event>(entity =>
             {
@@ -126,6 +143,13 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.EndDate).HasColumnName("end_date").IsRequired();
                 entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(200);
                 entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+                entity.Property(e => e.ClubId).HasColumnName("club_id");
+
+                entity.HasOne(e => e.Club)
+                    .WithMany(c => c.Events)
+                    .HasForeignKey(e => e.ClubId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
 

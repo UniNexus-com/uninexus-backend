@@ -11,5 +11,8 @@ namespace CleanArchitecture.Core.Entities
         public DateTime EndDate { get; set; }
         public string Location { get; set; }
         public bool IsActive { get; set; }
+
+        public int? ClubId { get; set; }
+        public Club Club { get; set; }
     }
 }
