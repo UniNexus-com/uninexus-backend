@@ -19,6 +19,12 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Club> Clubs { get; set; }
+        public DbSet<ClubRole> ClubRoles { get; set; }
+        public DbSet<ClubPrivilege> ClubPrivileges { get; set; }
+        public DbSet<ClubRolePrivilege> ClubRolePrivileges { get; set; }
+        public DbSet<UserClub> UserClubs { get; set; }
+        public DbSet<ClubJoinRequest> ClubJoinRequests { get; set; }
+        public DbSet<EventAttendee> EventAttendees { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -70,6 +76,24 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.HasMany(e => e.RefreshTokens)
                     .WithOne()
                     .HasForeignKey(rt => rt.ApplicationUserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.UserClubs)
+                    .WithOne()
+                    .HasForeignKey(uc => uc.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.JoinRequests)
+                    .WithOne()
+                    .HasForeignKey(jr => jr.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.EventAttendees)
+                    .WithOne()
+                    .HasForeignKey(ea => ea.UserId)
                     .IsRequired()
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -150,6 +174,100 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .HasForeignKey(e => e.ClubId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+            
+            // -- Club Roles -----
+            builder.Entity<ClubRole>(entity =>
+            {
+                entity.ToTable(name: "club_roles");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
+                entity.Property(e => e.ClubId).HasColumnName("club_id");
+                entity.Property(e => e.IsSystemRole).HasColumnName("is_system_role").HasDefaultValue(false);
+
+                entity.HasOne(e => e.Club)
+                    .WithMany(c => c.CustomRoles)
+                    .HasForeignKey(e => e.ClubId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // -- Club Privileges -----
+            builder.Entity<ClubPrivilege>(entity =>
+            {
+                entity.ToTable(name: "club_privileges");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasColumnName("description").HasMaxLength(250);
+            });
+
+            // -- Club Role Privileges -----
+            builder.Entity<ClubRolePrivilege>(entity =>
+            {
+                entity.ToTable(name: "club_role_privileges");
+                entity.HasKey(e => new { e.ClubRoleId, e.PrivilegeId });
+                entity.Property(e => e.ClubRoleId).HasColumnName("club_role_id");
+                entity.Property(e => e.PrivilegeId).HasColumnName("privilege_id");
+
+                entity.HasOne(e => e.ClubRole)
+                    .WithMany(r => r.RolePrivileges)
+                    .HasForeignKey(e => e.ClubRoleId);
+
+                entity.HasOne(e => e.Privilege)
+                    .WithMany(p => p.RolePrivileges)
+                    .HasForeignKey(e => e.PrivilegeId);
+            });
+
+            // -- User Clubs (Membership) -----
+            builder.Entity<UserClub>(entity =>
+            {
+                entity.ToTable(name: "user_clubs");
+                entity.HasKey(e => new { e.UserId, e.ClubId });
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.ClubId).HasColumnName("club_id");
+                entity.Property(e => e.ClubRoleId).HasColumnName("club_role_id");
+                entity.Property(e => e.JoinDate).HasColumnName("join_date");
+                entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+
+                entity.HasOne(e => e.Club)
+                    .WithMany(c => c.UserClubs)
+                    .HasForeignKey(e => e.ClubId);
+
+                entity.HasOne(e => e.Role)
+                    .WithMany(r => r.UserClubs)
+                    .HasForeignKey(e => e.ClubRoleId);
+            });
+
+            // -- Club Join Requests -----
+            builder.Entity<ClubJoinRequest>(entity =>
+            {
+                entity.ToTable(name: "club_join_requests");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
+                entity.Property(e => e.ClubId).HasColumnName("club_id").IsRequired();
+                entity.Property(e => e.Status).HasColumnName("status").HasConversion<int>().IsRequired();
+                entity.Property(e => e.ProcessedBy).HasColumnName("processed_by");
+                entity.Property(e => e.ProcessedDate).HasColumnName("processed_date");
+
+                entity.HasOne(e => e.Club)
+                    .WithMany(c => c.JoinRequests)
+                    .HasForeignKey(e => e.ClubId);
+            });
+
+            // -- Event Attendees -----
+            builder.Entity<EventAttendee>(entity =>
+            {
+                entity.ToTable(name: "event_attendees");
+                entity.HasKey(e => new { e.UserId, e.EventId });
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.EventId).HasColumnName("event_id");
+                entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(50);
+
+                entity.HasOne(e => e.Event)
+                    .WithMany()
+                    .HasForeignKey(e => e.EventId);
             });
 
 

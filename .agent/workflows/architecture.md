@@ -4,7 +4,7 @@
 The backend is built following **Clean Architecture** patterns to ensure separation of concerns and maintainability.
 
 ## Layers
-1. **Domain**: Contains basic entities (`Club`, `Event`, `ApplicationUser`), Enums, and Core Constants. No external dependencies.
+1. **Domain**: Contains basic entities (`Club`, `Event`, `ApplicationUser`, `ClubJoinRequest`, `ClubRole`, `ClubPrivilege`), Enums, and Core Constants. No external dependencies.
 2. **Application**: Contains the business logic using **CQRS** (MediatR). Defines DTOs, Mapping (AutoMapper), and Validation (FluentValidation).
 3. **Infrastructure**: Implements data access via **EF Core**, **Identity** management, and external service connectors (Email, Storage).
 4. **WebApi**: Entry points for the application (Controllers). Includes middleware for error handling, JWT auth, and Swagger.
