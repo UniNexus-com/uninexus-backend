@@ -80,6 +80,10 @@ using (var scope = app.Services.CreateScope())
         await CleanArchitecture.Infrastructure.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
         await CleanArchitecture.Infrastructure.Seeds.DefaultSuperAdmin.SeedAsync(userManager, roleManager);
         await CleanArchitecture.Infrastructure.Seeds.DefaultBasicUser.SeedAsync(userManager, roleManager);
+
+        var dbContext = services.GetRequiredService<CleanArchitecture.Infrastructure.Contexts.ApplicationDbContext>();
+        await CleanArchitecture.Infrastructure.Seeds.DefaultClubsAndEvents.SeedAsync(dbContext);
+
         Log.Information("Finished Seeding Default Data");
         Log.Information("Application Starting");
     }

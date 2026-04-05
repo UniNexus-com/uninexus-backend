@@ -3,6 +3,7 @@ using System;
 using CleanArchitecture.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CleanArchitecture.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260331180820_AddClubs_And_ClubIdToEvents")]
+    partial class AddClubs_And_ClubIdToEvents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,143 +74,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("clubs", (string)null);
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubJoinRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClubId")
-                        .HasColumnType("integer")
-                        .HasColumnName("club_id");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProcessedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("processed_by");
-
-                    b.Property<DateTime?>("ProcessedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_date");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClubId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("club_join_requests", (string)null);
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubPrivilege", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)")
-                        .HasColumnName("description");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("club_privileges", (string)null);
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubRole", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ClubId")
-                        .HasColumnType("integer")
-                        .HasColumnName("club_id");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsSystemRole")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_system_role");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClubId");
-
-                    b.ToTable("club_roles", (string)null);
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubRolePrivilege", b =>
-                {
-                    b.Property<int>("ClubRoleId")
-                        .HasColumnType("integer")
-                        .HasColumnName("club_role_id");
-
-                    b.Property<int>("PrivilegeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("privilege_id");
-
-                    b.HasKey("ClubRoleId", "PrivilegeId");
-
-                    b.HasIndex("PrivilegeId");
-
-                    b.ToTable("club_role_privileges", (string)null);
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.Event", b =>
@@ -271,43 +137,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.ToTable("events", (string)null);
                 });
 
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.EventAttendee", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("integer")
-                        .HasColumnName("event_id");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("status");
-
-                    b.HasKey("UserId", "EventId");
-
-                    b.HasIndex("EventId");
-
-                    b.ToTable("event_attendees", (string)null);
-                });
-
             modelBuilder.Entity("CleanArchitecture.Core.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -361,54 +190,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.ToTable("refresh_tokens", (string)null);
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.UserClub", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.Property<int>("ClubId")
-                        .HasColumnType("integer")
-                        .HasColumnName("club_id");
-
-                    b.Property<int>("ClubRoleId")
-                        .HasColumnType("integer")
-                        .HasColumnName("club_role_id");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<DateTime>("JoinDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("join_date");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("UserId", "ClubId");
-
-                    b.HasIndex("ClubId");
-
-                    b.HasIndex("ClubRoleId");
-
-                    b.ToTable("user_clubs", (string)null);
                 });
 
             modelBuilder.Entity("CleanArchitecture.Infrastructure.Models.ApplicationUser", b =>
@@ -618,52 +399,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.ToTable("user_tokens", (string)null);
                 });
 
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubJoinRequest", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.Club", "Club")
-                        .WithMany("JoinRequests")
-                        .HasForeignKey("ClubId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Infrastructure.Models.ApplicationUser", null)
-                        .WithMany("JoinRequests")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Club");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubRole", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.Club", "Club")
-                        .WithMany("CustomRoles")
-                        .HasForeignKey("ClubId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Club");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubRolePrivilege", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.ClubRole", "ClubRole")
-                        .WithMany("RolePrivileges")
-                        .HasForeignKey("ClubRoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Core.Entities.ClubPrivilege", "Privilege")
-                        .WithMany("RolePrivileges")
-                        .HasForeignKey("PrivilegeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ClubRole");
-
-                    b.Navigation("Privilege");
-                });
-
             modelBuilder.Entity("CleanArchitecture.Core.Entities.Event", b =>
                 {
                     b.HasOne("CleanArchitecture.Core.Entities.Club", "Club")
@@ -674,23 +409,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Navigation("Club");
                 });
 
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.EventAttendee", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.Event", "Event")
-                        .WithMany()
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Infrastructure.Models.ApplicationUser", null)
-                        .WithMany("EventAttendees")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-                });
-
             modelBuilder.Entity("CleanArchitecture.Core.Entities.RefreshToken", b =>
                 {
                     b.HasOne("CleanArchitecture.Infrastructure.Models.ApplicationUser", null)
@@ -698,31 +416,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.UserClub", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.Club", "Club")
-                        .WithMany("UserClubs")
-                        .HasForeignKey("ClubId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Core.Entities.ClubRole", "Role")
-                        .WithMany("UserClubs")
-                        .HasForeignKey("ClubRoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CleanArchitecture.Infrastructure.Models.ApplicationUser", null)
-                        .WithMany("UserClubs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Club");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -778,36 +471,12 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.Club", b =>
                 {
-                    b.Navigation("CustomRoles");
-
                     b.Navigation("Events");
-
-                    b.Navigation("JoinRequests");
-
-                    b.Navigation("UserClubs");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubPrivilege", b =>
-                {
-                    b.Navigation("RolePrivileges");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubRole", b =>
-                {
-                    b.Navigation("RolePrivileges");
-
-                    b.Navigation("UserClubs");
                 });
 
             modelBuilder.Entity("CleanArchitecture.Infrastructure.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("EventAttendees");
-
-                    b.Navigation("JoinRequests");
-
                     b.Navigation("RefreshTokens");
-
-                    b.Navigation("UserClubs");
                 });
 #pragma warning restore 612, 618
         }
