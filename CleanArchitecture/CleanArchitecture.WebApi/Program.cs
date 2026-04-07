@@ -43,8 +43,6 @@ else
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
-app.UseHttpsRedirection();
-
 app.UseRouting();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 app.UseAuthentication();
