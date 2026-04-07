@@ -102,31 +102,48 @@ namespace CleanArchitecture.Infrastructure.Seeds
             var student3 = await userManager.FindByNameAsync("student3");
             var student4 = await userManager.FindByNameAsync("student4");
 
-            // 2. Add some as active members
+            // 2. Add as active members
             var memberRole = await dbContext.ClubRoles.FirstOrDefaultAsync(r => r.Name == "Active Member");
+            var vicePresidentRole = await dbContext.ClubRoles.FirstOrDefaultAsync(r => r.Name == "Vice President");
+            var treasurerRole = await dbContext.ClubRoles.FirstOrDefaultAsync(r => r.Name == "Treasurer");
+
             if (memberRole != null)
             {
-                if (!await dbContext.UserClubs.AnyAsync(uc => uc.UserId == student1.Id && uc.ClubId == club.Id))
+                var membersToInvite = new List<(ApplicationUser User, int RoleId)>
                 {
-                    await dbContext.UserClubs.AddAsync(new UserClub 
-                    { 
-                        UserId = student1.Id, 
-                        ClubId = club.Id, 
-                        ClubRoleId = memberRole.Id, 
-                        JoinDate = DateTime.UtcNow.AddMonths(-1), 
-                        IsActive = true,
-                        Created = DateTime.UtcNow,
-                        CreatedBy = "seed"
-                    });
+                    (student1, memberRole.Id),
+                    (student2, memberRole.Id),
+                    (student3, vicePresidentRole?.Id ?? memberRole.Id),
+                    (student4, treasurerRole?.Id ?? memberRole.Id)
+                };
+
+                foreach (var m in membersToInvite)
+                {
+                    if (!await dbContext.UserClubs.AnyAsync(uc => uc.UserId == m.User.Id && uc.ClubId == club.Id))
+                    {
+                        await dbContext.UserClubs.AddAsync(new UserClub 
+                        { 
+                            UserId = m.User.Id, 
+                            ClubId = club.Id, 
+                            ClubRoleId = m.RoleId, 
+                            JoinDate = DateTime.UtcNow.AddMonths(-new Random().Next(1, 6)), 
+                            IsActive = true,
+                            Created = DateTime.UtcNow,
+                            CreatedBy = "seed"
+                        });
+                    }
                 }
-                if (!await dbContext.UserClubs.AnyAsync(uc => uc.UserId == student2.Id && uc.ClubId == club.Id))
+
+                // Add default student as 6th member
+                var defaultStudent = await userManager.FindByNameAsync("defaultstudent");
+                if (defaultStudent != null && !await dbContext.UserClubs.AnyAsync(uc => uc.UserId == defaultStudent.Id && uc.ClubId == club.Id))
                 {
                     await dbContext.UserClubs.AddAsync(new UserClub 
                     { 
-                        UserId = student2.Id, 
+                        UserId = defaultStudent.Id, 
                         ClubId = club.Id, 
                         ClubRoleId = memberRole.Id, 
-                        JoinDate = DateTime.UtcNow.AddMonths(-2), 
+                        JoinDate = DateTime.UtcNow.AddDays(-10), 
                         IsActive = true,
                         Created = DateTime.UtcNow,
                         CreatedBy = "seed"
@@ -134,28 +151,30 @@ namespace CleanArchitecture.Infrastructure.Seeds
                 }
             }
 
-            // 3. Add some as pending join requests
-            if (!await dbContext.ClubJoinRequests.AnyAsync(cjr => cjr.UserId == student3.Id && cjr.ClubId == club.Id))
+            // 3. Add new students as pending join requests (to keep testing requests functionality)
+            var requester1 = new ApplicationUser { UserName = "requester1", Email = "req1@akdeniz.edu.tr", FullName = "Caner Şen", EmailConfirmed = true };
+            var requester2 = new ApplicationUser { UserName = "requester2", Email = "req2@akdeniz.edu.tr", FullName = "Elif Sönmez", EmailConfirmed = true };
+
+            foreach (var req in new[] { requester1, requester2 })
             {
-                await dbContext.ClubJoinRequests.AddAsync(new ClubJoinRequest
+                if (userManager.Users.All(u => u.UserName != req.UserName))
                 {
-                    UserId = student3.Id,
-                    ClubId = club.Id,
-                    Status = 0, // Pending
-                    Created = DateTime.UtcNow,
-                    CreatedBy = student3.UserName
-                });
-            }
-            if (!await dbContext.ClubJoinRequests.AnyAsync(cjr => cjr.UserId == student4.Id && cjr.ClubId == club.Id))
-            {
-                await dbContext.ClubJoinRequests.AddAsync(new ClubJoinRequest
+                    await userManager.CreateAsync(req, "Student123!");
+                    await userManager.AddToRoleAsync(req, Roles.STUDENT.ToString());
+                }
+                
+                var user = await userManager.FindByNameAsync(req.UserName);
+                if (!await dbContext.ClubJoinRequests.AnyAsync(cjr => cjr.UserId == user.Id && cjr.ClubId == club.Id))
                 {
-                    UserId = student4.Id,
-                    ClubId = club.Id,
-                    Status = 0, // Pending
-                    Created = DateTime.UtcNow,
-                    CreatedBy = student4.UserName
-                });
+                    await dbContext.ClubJoinRequests.AddAsync(new ClubJoinRequest
+                    {
+                        UserId = user.Id,
+                        ClubId = club.Id,
+                        Status = ClubJoinStatus.Pending,
+                        Created = DateTime.UtcNow,
+                        CreatedBy = user.UserName
+                    });
+                }
             }
 
             await dbContext.SaveChangesAsync();
