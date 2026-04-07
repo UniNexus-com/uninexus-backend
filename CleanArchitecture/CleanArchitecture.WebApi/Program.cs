@@ -83,6 +83,7 @@ using (var scope = app.Services.CreateScope())
 
         var dbContext = services.GetRequiredService<CleanArchitecture.Infrastructure.Contexts.ApplicationDbContext>();
         await CleanArchitecture.Infrastructure.Seeds.DefaultClubsAndEvents.SeedAsync(dbContext);
+        await CleanArchitecture.Infrastructure.Seeds.DefaultClubLeaders.SeedAsync(userManager, dbContext);
 
         Log.Information("Finished Seeding Default Data");
         Log.Information("Application Starting");

@@ -15,6 +15,55 @@ namespace CleanArchitecture.Infrastructure.Seeds
 
             var now = DateTime.UtcNow;
 
+            // 1. Seed Privileges
+            var privileges = new List<ClubPrivilege>
+            {
+                new ClubPrivilege { Name = "Manage Members", Description = "Can approve/reject join requests and manage roles" },
+                new ClubPrivilege { Name = "Manage Events", Description = "Can create and edit club events" },
+                new ClubPrivilege { Name = "Manage Budget", Description = "Can see and manage club finances" },
+                new ClubPrivilege { Name = "Manage Assets", Description = "Can manage club inventory" },
+                new ClubPrivilege { Name = "View Reports", Description = "Can view club participation and financial reports" }
+            };
+
+            await context.AddRangeAsync(privileges);
+            await context.SaveChangesAsync();
+
+            // 2. Seed System Roles
+            var systemRoles = new List<ClubRole>
+            {
+                new ClubRole { Name = "President", IsSystemRole = true, Created = now, CreatedBy = "seed" },
+                new ClubRole { Name = "Vice President", IsSystemRole = true, Created = now, CreatedBy = "seed" },
+                new ClubRole { Name = "Treasurer", IsSystemRole = true, Created = now, CreatedBy = "seed" },
+                new ClubRole { Name = "Secretary", IsSystemRole = true, Created = now, CreatedBy = "seed" },
+                new ClubRole { Name = "Active Member", IsSystemRole = true, Created = now, CreatedBy = "seed" }
+            };
+
+            await context.ClubRoles.AddRangeAsync(systemRoles);
+            await context.SaveChangesAsync();
+
+            // 3. Link Roles to Privileges
+            var rolePrivileges = new List<ClubRolePrivilege>();
+
+            // President gets everything
+            foreach (var p in privileges)
+                rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[0].Id, PrivilegeId = p.Id });
+
+            // Vice President gets Members and Events
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[1].Id, PrivilegeId = privileges[0].Id });
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[1].Id, PrivilegeId = privileges[1].Id });
+
+            // Treasurer gets Budget and Assets
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[2].Id, PrivilegeId = privileges[2].Id });
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[2].Id, PrivilegeId = privileges[3].Id });
+
+            // Secretary gets Reports and Events
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[3].Id, PrivilegeId = privileges[1].Id });
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[3].Id, PrivilegeId = privileges[4].Id });
+
+            await context.AddRangeAsync(rolePrivileges);
+            await context.SaveChangesAsync();
+
+            // 4. Seed Clubs
             var clubs = new List<Club>
             {
                 new Club
@@ -67,6 +116,7 @@ namespace CleanArchitecture.Infrastructure.Seeds
             await context.Clubs.AddRangeAsync(clubs);
             await context.SaveChangesAsync();
 
+            // 5. Seed Events
             var events = new List<Event>
             {
                 // Yazılım ve Teknoloji Kulübü
@@ -203,5 +253,6 @@ namespace CleanArchitecture.Infrastructure.Seeds
             await context.Events.AddRangeAsync(events);
             await context.SaveChangesAsync();
         }
+
     }
 }
