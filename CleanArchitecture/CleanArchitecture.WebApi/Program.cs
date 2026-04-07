@@ -63,34 +63,8 @@ Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(app.Configuration)
                 .CreateLogger();
 
-//Seed Default Data
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-    try
-    {
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-        var result = await roleManager.CreateAsync(new IdentityRole(Roles.SKS_ADMIN.ToString()));
-
-        await CleanArchitecture.Infrastructure.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
-        await CleanArchitecture.Infrastructure.Seeds.DefaultSuperAdmin.SeedAsync(userManager, roleManager);
-        await CleanArchitecture.Infrastructure.Seeds.DefaultBasicUser.SeedAsync(userManager, roleManager);
-
-        var dbContext = services.GetRequiredService<CleanArchitecture.Infrastructure.Contexts.ApplicationDbContext>();
-        await CleanArchitecture.Infrastructure.Seeds.DefaultClubsAndEvents.SeedAsync(dbContext);
-        await CleanArchitecture.Infrastructure.Seeds.DefaultClubLeaders.SeedAsync(userManager, dbContext);
-
-        Log.Information("Finished Seeding Default Data");
-        Log.Information("Application Starting");
-    }
-    catch (Exception ex)
-    {
-        Log.Warning(ex, "An error occurred seeding the DB");
-    }
-}
+//Application Starting Log
+Log.Information("Application Starting");
 
 //Start the application
 app.Run();
