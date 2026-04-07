@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Enums;
@@ -60,8 +60,8 @@ namespace CleanArchitecture.Infrastructure.Services
             if (user == null)
                 throw new ApiException($"No Accounts Registered with {request.Email}.");
 
-            var result = await _signInManager.PasswordSignInAsync(user.UserName, request.Password, false, lockoutOnFailure: false);
-            if (!result.Succeeded)
+            var isValid = await _userManager.CheckPasswordAsync(user, request.Password);
+            if (!isValid)
                 throw new ApiException($"Invalid Credentials for '{request.Email}'.");
 
             if (!user.EmailConfirmed)
@@ -74,7 +74,7 @@ namespace CleanArchitecture.Infrastructure.Services
             if (request.LoginType == "SKS_ADMIN" && !userRoles.Contains(Roles.SKS_ADMIN.ToString()))
                 throw new ApiException("This account does not have administrator privileges.");
 
-            var jwtToken = await GenerateJWToken(user);
+            var jwtToken = await GenerateJWToken(user, userRoles);
             var rawToken = TokenHelper.GenerateRawToken();
 
             var refreshToken = new RefreshToken
@@ -87,9 +87,9 @@ namespace CleanArchitecture.Infrastructure.Services
                 CreatedByIp = ipAddress
             };
 
-            user.RefreshTokens ??= new List<RefreshToken>();
-            user.RefreshTokens.Add(refreshToken);
-            await _userManager.UpdateAsync(user);
+            // Targeted update for refresh token instead of full user update
+            _context.RefreshTokens.Add(refreshToken);
+            await _context.SaveChangesAsync();
 
             return new AuthenticationResponse
             {
@@ -208,12 +208,21 @@ namespace CleanArchitecture.Infrastructure.Services
                 CreatedByIp = ipAddress
             });
 
-            //await _userManager.UpdateAsync(user);
-            _context.Users.Update(user);
+            // Targeted updates via context
+            _context.RefreshTokens.Update(refreshToken);
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                TokenHash = TokenHelper.HashToken(newRawToken),
+                Platform = refreshToken.Platform,
+                ApplicationUserId = user.Id,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                CreatedAt = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            });
             await _context.SaveChangesAsync();
 
-            var jwtToken = await GenerateJWToken(user);
             var roles = await _userManager.GetRolesAsync(user);
+            var jwtToken = await GenerateJWToken(user, roles);
 
             return new AuthenticationResponse
             {
@@ -260,11 +269,11 @@ namespace CleanArchitecture.Infrastructure.Services
         }
 
         // ── Private Helpers ───────────────────────────────────────────
-        private async Task<JwtSecurityToken> GenerateJWToken(ApplicationUser user)
+        private async Task<JwtSecurityToken> GenerateJWToken(ApplicationUser user, IEnumerable<string> roles = null)
         {
             var userClaims = await _userManager.GetClaimsAsync(user);
-            var roles = await _userManager.GetRolesAsync(user);
-            var roleClaims = roles.Select(r => new Claim("roles", r));
+            var userRoles = roles ?? await _userManager.GetRolesAsync(user);
+            var roleClaims = userRoles.Select(r => new Claim("roles", r));
 
             var claims = new[]
             {
