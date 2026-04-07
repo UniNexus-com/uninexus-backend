@@ -82,5 +82,31 @@ namespace CleanArchitecture.Infrastructure.Repository
             _dbContext.Entry(joinRequest).State = EntityState.Modified;
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<MemberDetailsDto> GetClubMemberDetailsAsync(int clubId, string userId)
+        {
+            var query = from uc in _userClubs
+                        join u in _users on uc.UserId equals u.Id
+                        join r in _dbContext.ClubRoles on uc.ClubRoleId equals r.Id into roles
+                        from r in roles.DefaultIfEmpty()
+                        where uc.ClubId == clubId && uc.UserId == userId
+                        select new MemberDetailsDto
+                        {
+                            Id = u.Id,
+                            Name = u.FullName,
+                            Email = u.Email,
+                            StudentNumber = u.StudentNumber,
+                            Role = r != null ? r.Name : "Member",
+                            RoleColor = r != null ? (r.Name == "President" ? "#ef4444" : "#3b82f6") : "#94a3b8",
+                            IsPresident = r != null && r.Name == "President",
+                            Joined = uc.JoinDate,
+                            Phone = u.PhoneNumber, // Default fields from IdentityUser
+                            Major = "Computer Engineering", // Dummy for now as it's not in DB
+                            Year = "3rd Year", // Dummy for now
+                            Bio = "Bio placeholder" // Dummy for now
+                        };
+
+            return await query.FirstOrDefaultAsync();
+        }
     }
 }
