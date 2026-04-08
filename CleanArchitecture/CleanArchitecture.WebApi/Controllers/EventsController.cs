@@ -1,3 +1,4 @@
+using CleanArchitecture.Core.Features.Events.Commands.ApproveEvent;
 using CleanArchitecture.Core.Features.Events.Commands.CreateEvent;
 using CleanArchitecture.Core.Features.Events.Commands.DeleteEvent;
 using CleanArchitecture.Core.Features.Events.Commands.UpdateEvent;
@@ -44,6 +45,18 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             return Ok(await Mediator.Send(new DeleteEventCommand { Id = id }));
+        }
+
+        [HttpPut("approve/{id}")]
+        [Authorize(Roles = "SKS_ADMIN")]
+        public async Task<IActionResult> ApproveEvent(int id, [FromBody] ApproveEventCommand command)
+        {
+            if (id != command.Id)
+            {
+                return BadRequest();
+            }
+
+            return Ok(await Mediator.Send(command));
         }
     }
 }

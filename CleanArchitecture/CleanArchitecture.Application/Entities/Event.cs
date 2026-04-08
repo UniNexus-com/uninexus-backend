@@ -1,5 +1,6 @@
 using System;
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Enums;
 
 namespace CleanArchitecture.Core.Entities
 {
@@ -16,6 +17,7 @@ namespace CleanArchitecture.Core.Entities
         public int? Capacity { get; set; }
         public string Requirements { get; set; }
         public bool RequireApproval { get; set; }
+        public EventStatus Status { get; set; }
         public string Tags { get; set; }
 
         public int? ClubId { get; set; }

@@ -10,29 +10,29 @@ namespace CleanArchitecture.Core.Helpers
     {
         public static string ConfirmEmail(string fullName, string confirmUrl) => $"""
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-            <h2>Merhaba {fullName},</h2>
-            <p>Hesabını doğrulamak için aşağıdaki butona tıkla:</p>
+            <h2>Hello {fullName},</h2>
+            <p>To verify your account, click the button below:</p>
             <a href="{confirmUrl}"
                style="display:inline-block;padding:12px 24px;background:#4F46E5;
                       color:white;border-radius:6px;text-decoration:none;font-weight:bold">
-                Hesabı Doğrula
+                Verify Account
             </a>
-            <p style="color:#666;margin-top:16px">Bu bağlantı 24 saat geçerlidir.</p>
+            <p style="color:#666;margin-top:16px">This link is available for 24 hours.</p>
         </div>
         """;
 
         public static string ResetPassword(string fullName, string resetUrl) => $"""
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
                 <h2>Merhaba {fullName},</h2>
-                <p>Şifreni sıfırlamak için aşağıdaki butona tıkla:</p>
+                <p>To reset your password, click the button below:</p>
                 <a href="{resetUrl}"
                    style="display:inline-block;padding:12px 24px;background:#4F46E5;
                           color:white;border-radius:6px;text-decoration:none;font-weight:bold">
-                    Şifremi Sıfırla
+                    Reset My Password
                 </a>
                 <p style="color:#666;margin-top:16px">
-                    Bu bağlantı 1 saat geçerlidir.<br>
-                    Eğer bu isteği sen yapmadıysan dikkate alma.
+                    This link is available for 1 hour.<br>
+                    If you didn't make this request, disregard it.
                 </p>
             </div>
             """;
