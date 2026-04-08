@@ -15,7 +15,7 @@ namespace CleanArchitecture.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] GetAllEventsParameter filter)
         {
-            return Ok(await Mediator.Send(new GetAllEventsQuery() { PageSize = filter.PageSize, PageNumber = filter.PageNumber }));
+            return Ok(await Mediator.Send(new GetAllEventsQuery() { ClubId = filter.ClubId }));
         }
 
         [HttpGet("{id}")]

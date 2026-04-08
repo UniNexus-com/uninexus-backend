@@ -15,7 +15,7 @@ namespace CleanArchitecture.Infrastructure
         public ApplicationDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5433;Database=uni-nexus;Username=postgres;Password=admin");
+            optionsBuilder.UseNpgsql("Host=aws-1-eu-central-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.bpdsydscpveigfwrpbmo;Password=MBhTdJmhqrcSgLMQ;SslMode=Require");
             optionsBuilder.EnableSensitiveDataLogging();
 
             return new ApplicationDbContext(optionsBuilder.Options, null, null);

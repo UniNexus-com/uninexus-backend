@@ -16,6 +16,13 @@ namespace CleanArchitecture.Core.Features.Events.Commands.CreateEvent
         public DateTime EndDate { get; set; }
         public string Location { get; set; }
         public bool IsActive { get; set; }
+        public int? ClubId { get; set; }
+        public string Category { get; set; }
+        public string Visibility { get; set; }
+        public int? Capacity { get; set; }
+        public string Requirements { get; set; }
+        public bool RequireApproval { get; set; }
+        public string Tags { get; set; }
     }
 
     public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Response<int>>

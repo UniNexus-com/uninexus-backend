@@ -13,5 +13,6 @@ namespace CleanArchitecture.Core.Entities
         public ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
         public ICollection<ClubRole> CustomRoles { get; set; } = new List<ClubRole>();
         public ICollection<ClubJoinRequest> JoinRequests { get; set; } = new List<ClubJoinRequest>();
+        public ICollection<Asset> Assets { get; set; } = new List<Asset>();
     }
 }
