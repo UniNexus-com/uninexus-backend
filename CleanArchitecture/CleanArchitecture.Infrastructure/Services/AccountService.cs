@@ -87,7 +87,17 @@ namespace CleanArchitecture.Infrastructure.Services
                 CreatedByIp = ipAddress
             };
 
-            // Targeted update for refresh token instead of full user update
+            // CLEANUP: Remove old tokens for this user and platform to prevent bloat
+            var existingTokens = await _context.RefreshTokens
+                .Where(t => t.ApplicationUserId == user.Id && t.Platform == request.LoginType)
+                .ToListAsync();
+            
+            if (existingTokens.Any())
+            {
+                _context.RefreshTokens.RemoveRange(existingTokens);
+            }
+
+            // Create new session token
             _context.RefreshTokens.Add(refreshToken);
             await _context.SaveChangesAsync();
 
@@ -165,14 +175,11 @@ namespace CleanArchitecture.Infrastructure.Services
 
             if (user == null) throw new ApiException("Invalid token.");
 
-            var activeTokens = user.RefreshTokens.Where(t => t.IsActive).ToList();
-            if (!activeTokens.Any()) throw new ApiException("No active tokens found.");
+            var refreshTokenEntity = user.RefreshTokens.Single(t => t.TokenHash == tokenHash);
+            if (!refreshTokenEntity.IsActive) throw new ApiException("Token is already inactive.");
 
-            foreach (var token in activeTokens)
-            {
-                token.RevokedAt = _dateTimeService.NowUtc;
-                token.RevokedByIp = ipAddress;
-            }
+            refreshTokenEntity.RevokedAt = _dateTimeService.NowUtc;
+            refreshTokenEntity.RevokedByIp = ipAddress;
 
             //await _userManager.UpdateAsync(user);
             _context.Users.Update(user);
@@ -193,34 +200,6 @@ namespace CleanArchitecture.Infrastructure.Services
             var refreshToken = user.RefreshTokens.Single(x => x.TokenHash == tokenHash);
             if (!refreshToken.IsActive) throw new ApiException("Token is inactive.");
 
-            var newRawToken = TokenHelper.GenerateRawToken();
-            refreshToken.RevokedAt = _dateTimeService.NowUtc;
-            refreshToken.RevokedByIp = ipAddress;
-            refreshToken.ReplacedByToken = TokenHelper.HashToken(newRawToken);
-
-            user.RefreshTokens.Add(new RefreshToken
-            {
-                TokenHash = TokenHelper.HashToken(newRawToken),
-                Platform = refreshToken.Platform,
-                ApplicationUserId = user.Id,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
-                CreatedAt = DateTime.UtcNow,
-                CreatedByIp = ipAddress
-            });
-
-            // Targeted updates via context
-            _context.RefreshTokens.Update(refreshToken);
-            _context.RefreshTokens.Add(new RefreshToken
-            {
-                TokenHash = TokenHelper.HashToken(newRawToken),
-                Platform = refreshToken.Platform,
-                ApplicationUserId = user.Id,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
-                CreatedAt = DateTime.UtcNow,
-                CreatedByIp = ipAddress
-            });
-            await _context.SaveChangesAsync();
-
             var roles = await _userManager.GetRolesAsync(user);
             var jwtToken = await GenerateJWToken(user, roles);
 
@@ -232,7 +211,7 @@ namespace CleanArchitecture.Infrastructure.Services
                 UserName = user.UserName,
                 Roles = roles.ToList(),
                 IsVerified = user.EmailConfirmed,
-                RefreshToken = newRawToken
+                RefreshToken = token // Reuse the same token
             };
         }
 

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace CleanArchitecture.Core.DTOs.Roles
 {
     public class ClubRoleViewModel
@@ -8,5 +10,6 @@ namespace CleanArchitecture.Core.DTOs.Roles
         public string Color { get; set; }
         public bool IsSystemRole { get; set; }
         public int? ClubId { get; set; }
+        public IEnumerable<int> PrivilegeIds { get; set; } = new List<int>();
     }
 }

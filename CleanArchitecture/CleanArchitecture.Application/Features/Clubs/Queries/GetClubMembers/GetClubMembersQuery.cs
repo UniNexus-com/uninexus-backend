@@ -1,8 +1,11 @@
 using CleanArchitecture.Core.DTOs.Clubs;
+using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +28,7 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
         public async Task<Response<IEnumerable<ClubMemberDto>>> Handle(GetClubMembersQuery request, CancellationToken cancellationToken)
         {
             var members = await _clubRepository.GetClubMembersAsync(request.ClubId);
+            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Count: {members.Count}");
             return new Response<IEnumerable<ClubMemberDto>>(members);
         }
     }

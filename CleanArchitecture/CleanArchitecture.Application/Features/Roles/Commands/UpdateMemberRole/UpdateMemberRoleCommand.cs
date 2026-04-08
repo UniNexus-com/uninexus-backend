@@ -2,6 +2,7 @@ using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +18,25 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
 
     public class UpdateMemberRoleCommandHandler : IRequestHandler<UpdateMemberRoleCommand, Response<string>>
     {
-        private readonly IGenericRepositoryAsync<UserClub> _userClubRepo;
+        private readonly IApplicationDbContext _dbContext;
 
-        public UpdateMemberRoleCommandHandler(IGenericRepositoryAsync<UserClub> userClubRepo)
+        public UpdateMemberRoleCommandHandler(IApplicationDbContext dbContext)
         {
-            _userClubRepo = userClubRepo;
+            _dbContext = dbContext;
         }
 
         public async Task<Response<string>> Handle(UpdateMemberRoleCommand request, CancellationToken cancellationToken)
         {
-            var all = await _userClubRepo.GetAllAsync();
-            var membership = all.FirstOrDefault(uc => uc.UserId == request.UserId && uc.ClubId == request.ClubId);
+            var membership = await _dbContext.UserClubs
+                .SingleOrDefaultAsync(uc => uc.UserId == request.UserId && uc.ClubId == request.ClubId, cancellationToken);
+            
             if (membership == null) return new Response<string>("Membership not found.");
+            
             membership.ClubRoleId = request.RoleId;
-            await _userClubRepo.UpdateAsync(membership);
+            
+            _dbContext.UserClubs.Update(membership);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            
             return new Response<string>(request.UserId);
         }
     }

@@ -11,7 +11,7 @@ using CleanArchitecture.Core.DTOs.Account;
 
 namespace CleanArchitecture.Infrastructure.Contexts
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
     {
         private readonly IDateTimeService _dateTime;
         private readonly IAuthenticatedUserService _authenticatedUser;

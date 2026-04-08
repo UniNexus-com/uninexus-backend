@@ -7,6 +7,7 @@ using CleanArchitecture.Core.Features.Clubs.Queries.GetManagedClubs;
 using CleanArchitecture.Core.Features.Roles.Commands.CreateClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.DeleteClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole;
+using CleanArchitecture.Core.Features.Roles.Queries.GetClubPrivileges;
 using CleanArchitecture.Core.Features.Roles.Queries.GetClubRoles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,12 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> GetManagedClubs()
         {
             return Ok(await Mediator.Send(new GetManagedClubsQuery()));
+        }
+
+        [HttpGet("privileges")]
+        public async Task<IActionResult> GetPrivileges()
+        {
+            return Ok(await Mediator.Send(new GetClubPrivilegesQuery()));
         }
 
         [HttpGet("{id}/members")]

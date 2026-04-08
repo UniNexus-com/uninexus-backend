@@ -1,9 +1,9 @@
-using AutoMapper;
 using CleanArchitecture.Core.DTOs.Roles;
 using CleanArchitecture.Core.Entities;
-using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
+using CleanArchitecture.Core.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,20 +18,34 @@ namespace CleanArchitecture.Core.Features.Roles.Queries.GetClubRoles
 
     public class GetClubRolesQueryHandler : IRequestHandler<GetClubRolesQuery, Response<IEnumerable<ClubRoleViewModel>>>
     {
-        private readonly IGenericRepositoryAsync<ClubRole> _roleRepo;
-        private readonly IMapper _mapper;
+        private readonly IApplicationDbContext _dbContext;
 
-        public GetClubRolesQueryHandler(IGenericRepositoryAsync<ClubRole> roleRepo, IMapper mapper)
+        public GetClubRolesQueryHandler(IApplicationDbContext dbContext)
         {
-            _roleRepo = roleRepo;
-            _mapper = mapper;
+            _dbContext = dbContext;
         }
 
         public async Task<Response<IEnumerable<ClubRoleViewModel>>> Handle(GetClubRolesQuery request, CancellationToken cancellationToken)
         {
-            var all = await _roleRepo.GetAllAsync();
-            var roles = all.Where(r => r.IsSystemRole || r.ClubId == request.ClubId);
-            return new Response<IEnumerable<ClubRoleViewModel>>(_mapper.Map<IEnumerable<ClubRoleViewModel>>(roles));
+            var roles = await _dbContext.Set<ClubRole>()
+                .Include(r => r.RolePrivileges)
+                .Where(r => r.IsSystemRole || r.ClubId == request.ClubId)
+                .ToListAsync(cancellationToken);
+
+            System.Console.WriteLine($"[DIAGNOSTIC] GetClubRolesQuery - ClubId: {request.ClubId}, Count: {roles.Count}");
+
+            var result = roles.Select(r => new ClubRoleViewModel
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Description = r.Description,
+                Color = r.Color,
+                IsSystemRole = r.IsSystemRole,
+                ClubId = r.ClubId,
+                PrivilegeIds = r.RolePrivileges.Select(rp => rp.PrivilegeId).ToList()
+            });
+
+            return new Response<IEnumerable<ClubRoleViewModel>>(result);
         }
     }
 }
