@@ -26,6 +26,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<ClubJoinRequest> ClubJoinRequests { get; set; }
         public DbSet<EventAttendee> EventAttendees { get; set; }
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<BudgetRequest> BudgetRequests { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -154,6 +155,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.Created).HasColumnName("created");
                 entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
                 entity.Property(e => e.LastModified).HasColumnName("last_modified");
+                entity.Property(e => e.TotalBudget).HasColumnName("total_budget").HasColumnType("numeric(12,2)");
             });
 
             // -- Events -----
@@ -192,6 +194,12 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
                 entity.Property(e => e.ClubId).HasColumnName("club_id");
                 entity.Property(e => e.IsSystemRole).HasColumnName("is_system_role").HasDefaultValue(false);
+                entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Color).HasColumnName("color").HasMaxLength(20);
+                entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                entity.Property(e => e.Created).HasColumnName("created");
+                entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                entity.Property(e => e.LastModified).HasColumnName("last_modified");
 
                 entity.HasOne(e => e.Club)
                     .WithMany(c => c.CustomRoles)
@@ -285,6 +293,30 @@ namespace CleanArchitecture.Infrastructure.Contexts
 
                 entity.HasOne(e => e.Club)
                     .WithMany(c => c.Assets)
+                    .HasForeignKey(e => e.ClubId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // -- Budget Requests -----
+            builder.Entity<BudgetRequest>(entity =>
+            {
+                entity.ToTable("budget_requests");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+                entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(50);
+                entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Amount).HasColumnName("amount").HasColumnType("numeric(12,2)");
+                entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).HasDefaultValue("PENDING");
+                entity.Property(e => e.ClubId).HasColumnName("club_id");
+                entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                entity.Property(e => e.Created).HasColumnName("created");
+                entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                entity.Property(e => e.LastModified).HasColumnName("last_modified");
+
+                entity.HasOne(e => e.Club)
+                    .WithMany(c => c.BudgetRequests)
                     .HasForeignKey(e => e.ClubId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);

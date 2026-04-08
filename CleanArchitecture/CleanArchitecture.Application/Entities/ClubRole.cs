@@ -5,6 +5,8 @@ namespace CleanArchitecture.Core.Entities
     public class ClubRole : AuditableBaseEntity
     {
         public string Name { get; set; }
+        public string Description { get; set; }
+        public string Color { get; set; }
         public int? ClubId { get; set; }
         public bool IsSystemRole { get; set; }
 

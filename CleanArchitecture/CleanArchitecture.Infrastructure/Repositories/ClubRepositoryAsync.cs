@@ -38,8 +38,9 @@ namespace CleanArchitecture.Infrastructure.Repository
                             Name = u.FullName,
                             Email = u.Email,
                             Role = r != null ? r.Name : "Member",
-                            RoleColor = r != null ? (r.Name == "President" ? "#ef4444" : "#3b82f6") : "#94a3b8",
-                            IsPresident = r != null && r.Name == "President",
+                            RoleId = uc.ClubRoleId,
+                            RoleColor = r != null ? (r.Color ?? "#3b82f6") : "#94a3b8",
+                            IsPresident = r != null && r.IsSystemRole,
                             Joined = uc.JoinDate
                         };
 

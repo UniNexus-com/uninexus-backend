@@ -4,6 +4,10 @@ using CleanArchitecture.Core.Features.Clubs.Queries.GetClubJoinRequests;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetMemberDetails;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetManagedClubs;
+using CleanArchitecture.Core.Features.Roles.Commands.CreateClubRole;
+using CleanArchitecture.Core.Features.Roles.Commands.DeleteClubRole;
+using CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole;
+using CleanArchitecture.Core.Features.Roles.Queries.GetClubRoles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -47,6 +51,29 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> DeclineRequest(int id)
         {
             return Ok(await Mediator.Send(new DeclineJoinRequestCommand { Id = id }));
+        }
+
+        [HttpGet("{clubId}/roles")]
+        public async Task<IActionResult> GetRoles(int clubId)
+            => Ok(await Mediator.Send(new GetClubRolesQuery { ClubId = clubId }));
+
+        [HttpPost("{clubId}/roles")]
+        public async Task<IActionResult> CreateRole(int clubId, CreateClubRoleCommand command)
+        {
+            command.ClubId = clubId;
+            return Ok(await Mediator.Send(command));
+        }
+
+        [HttpDelete("{clubId}/roles/{roleId}")]
+        public async Task<IActionResult> DeleteRole(int clubId, int roleId)
+            => Ok(await Mediator.Send(new DeleteClubRoleCommand { Id = roleId }));
+
+        [HttpPut("{clubId}/members/{userId}/role")]
+        public async Task<IActionResult> UpdateMemberRole(int clubId, string userId, UpdateMemberRoleCommand command)
+        {
+            command.ClubId = clubId;
+            command.UserId = userId;
+            return Ok(await Mediator.Send(command));
         }
     }
 }
