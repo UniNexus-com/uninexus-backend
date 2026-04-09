@@ -107,6 +107,7 @@ namespace CleanArchitecture.Infrastructure.Services
                 JWToken = new JwtSecurityTokenHandler().WriteToken(jwtToken),
                 Email = user.Email,
                 UserName = user.UserName,
+                FullName = user.FullName,
                 Roles = userRoles.ToList(),
                 IsVerified = user.EmailConfirmed,
                 RefreshToken = rawToken
@@ -209,6 +210,7 @@ namespace CleanArchitecture.Infrastructure.Services
                 JWToken = new JwtSecurityTokenHandler().WriteToken(jwtToken),
                 Email = user.Email,
                 UserName = user.UserName,
+                FullName = user.FullName,
                 Roles = roles.ToList(),
                 IsVerified = user.EmailConfirmed,
                 RefreshToken = token // Reuse the same token
