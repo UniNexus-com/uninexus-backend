@@ -19,19 +19,33 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
     public class UpdateMemberRoleCommandHandler : IRequestHandler<UpdateMemberRoleCommand, Response<string>>
     {
         private readonly IApplicationDbContext _dbContext;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
 
-        public UpdateMemberRoleCommandHandler(IApplicationDbContext dbContext)
+        public UpdateMemberRoleCommandHandler(IApplicationDbContext dbContext, IAuthenticatedUserService authenticatedUserService)
         {
             _dbContext = dbContext;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         public async Task<Response<string>> Handle(UpdateMemberRoleCommand request, CancellationToken cancellationToken)
         {
+            if (request.UserId == _authenticatedUserService.UserId)
+            {
+                return new Response<string>("You cannot change your own role and permissions.");
+            }
+
             var membership = await _dbContext.UserClubs
+                .Include(uc => uc.Role)
                 .SingleOrDefaultAsync(uc => uc.UserId == request.UserId && uc.ClubId == request.ClubId, cancellationToken);
             
             if (membership == null) return new Response<string>("Membership not found.");
             
+            // Prevent changing the role of a President/Leader via this command if necessary
+            if (membership.Role != null && membership.Role.IsSystemRole && membership.Role.Name == "President")
+            {
+                return new Response<string>("Community leader's role cannot be changed.");
+            }
+
             membership.ClubRoleId = request.RoleId;
             
             _dbContext.UserClubs.Update(membership);

@@ -41,7 +41,7 @@ namespace CleanArchitecture.Infrastructure.Repository
                             Role = r != null ? r.Name : "Member",
                             RoleId = uc.ClubRoleId,
                             RoleColor = r != null ? (r.Color ?? "#3b82f6") : "#94a3b8",
-                            IsPresident = r != null && r.IsSystemRole,
+                            IsPresident = r != null && r.Name == "President",
                             Joined = uc.JoinDate
                         };
 
