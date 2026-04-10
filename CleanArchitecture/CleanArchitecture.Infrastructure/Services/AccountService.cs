@@ -277,6 +277,13 @@ namespace CleanArchitecture.Infrastructure.Services
                 expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
                 signingCredentials: credentials);
         }
+        public async Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds)
+        {
+            return await _userManager.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName);
+        }
+
         private async Task<string> BuildConfirmEmailUri(ApplicationUser user, string origin)
         {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

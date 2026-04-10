@@ -1,5 +1,7 @@
 using CleanArchitecture.Core.Features.Clubs.Commands.AcceptJoinRequest;
 using CleanArchitecture.Core.Features.Clubs.Commands.DeclineJoinRequest;
+using CleanArchitecture.Core.Features.Clubs.Commands.UpdateClubBudget;
+using CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubJoinRequests;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetMemberDetails;
@@ -22,6 +24,12 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> GetManagedClubs()
         {
             return Ok(await Mediator.Send(new GetManagedClubsQuery()));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(await Mediator.Send(new GetAllClubsQuery()));
         }
 
         [HttpGet("privileges")]
@@ -75,11 +83,18 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> DeleteRole(int clubId, int roleId)
             => Ok(await Mediator.Send(new DeleteClubRoleCommand { Id = roleId }));
 
-        [HttpPut("{clubId}/members/{userId}/role")]
+        [HttpPut("{id}/role")]
         public async Task<IActionResult> UpdateMemberRole(int clubId, string userId, UpdateMemberRoleCommand command)
         {
             command.ClubId = clubId;
             command.UserId = userId;
+            return Ok(await Mediator.Send(command));
+        }
+
+        [HttpPut("{id}/budget")]
+        public async Task<IActionResult> UpdateBudget(int id, UpdateClubBudgetCommand command)
+        {
+            if (id != command.Id) return BadRequest();
             return Ok(await Mediator.Send(command));
         }
     }

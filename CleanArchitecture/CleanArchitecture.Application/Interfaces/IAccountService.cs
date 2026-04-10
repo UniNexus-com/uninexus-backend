@@ -1,6 +1,7 @@
-﻿using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.Wrappers;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Interfaces
@@ -14,5 +15,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task ForgotPasswordAsync(ForgotPasswordRequest model, string origin);
         Task<string> ResetPasswordAsync(ResetPasswordRequest model);
         Task<AuthenticationResponse> RefreshTokenAsync(string token, string ipAddress);
+        Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds);
     }
 }
