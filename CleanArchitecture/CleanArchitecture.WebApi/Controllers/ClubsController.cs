@@ -6,6 +6,7 @@ using CleanArchitecture.Core.Features.Clubs.Queries.GetClubJoinRequests;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetMemberDetails;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetManagedClubs;
+using CleanArchitecture.Core.Features.Clubs.Queries.GetClubStats;
 using CleanArchitecture.Core.Features.Roles.Commands.CreateClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.DeleteClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole;
@@ -96,6 +97,12 @@ namespace CleanArchitecture.WebApi.Controllers
         {
             if (id != command.Id) return BadRequest();
             return Ok(await Mediator.Send(command));
+        }
+
+        [HttpGet("{id}/stats")]
+        public async Task<IActionResult> GetStats(int id)
+        {
+            return Ok(await Mediator.Send(new GetClubStatsQuery { ClubId = id }));
         }
     }
 }

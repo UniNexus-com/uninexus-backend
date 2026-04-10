@@ -13,5 +13,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task<MemberDetailsDto> GetClubMemberDetailsAsync(int clubId, string userId);
         Task<ClubJoinRequest> GetJoinRequestByIdAsync(int requestId);
         Task UpdateJoinRequestAsync(ClubJoinRequest joinRequest);
+        Task<ClubStatsDto> GetClubStatsAsync(int clubId);
     }
 }

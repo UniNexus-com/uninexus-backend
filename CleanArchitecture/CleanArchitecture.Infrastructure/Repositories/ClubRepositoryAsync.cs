@@ -4,6 +4,7 @@ using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Infrastructure.Contexts;
 using CleanArchitecture.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -108,6 +109,85 @@ namespace CleanArchitecture.Infrastructure.Repository
                         };
 
             return await query.FirstOrDefaultAsync();
+        }
+        public async Task<ClubStatsDto> GetClubStatsAsync(int clubId)
+        {
+            var now = DateTime.UtcNow;
+            var oneYearAgo = now.AddYears(-1);
+
+            var club = await _dbContext.Clubs.FindAsync(clubId);
+            if (club == null) return null;
+
+            var stats = new ClubStatsDto
+            {
+                TotalMembers = await _userClubs.CountAsync(uc => uc.ClubId == clubId),
+                UpcomingEventsCount = await _dbContext.Events.CountAsync(e => e.ClubId == clubId && e.StartDate > now && e.IsActive),
+                TotalBudget = club.TotalBudget ?? 0
+            };
+
+            // Calculate Growth Rate (Last 30 days)
+            var thirtyDaysAgo = now.AddDays(-30);
+            var newMembersCount = await _userClubs.CountAsync(uc => uc.ClubId == clubId && uc.JoinDate >= thirtyDaysAgo);
+            var totalMembersBefore = stats.TotalMembers - newMembersCount;
+            stats.GrowthRate = totalMembersBefore > 0 ? (double)newMembersCount / totalMembersBefore * 100 : 0;
+
+            // Activity Logs
+            var activityLogs = new List<ActivityPointDto>();
+
+            // 1. New Members
+            var memberJoins = await _userClubs
+                .Where(uc => uc.ClubId == clubId && uc.JoinDate >= oneYearAgo)
+                .Select(uc => new ActivityPointDto
+                {
+                    Date = uc.JoinDate.Date,
+                    Count = 1,
+                    Type = "MemberJoined",
+                    Description = "New member joined"
+                })
+                .ToListAsync();
+            activityLogs.AddRange(memberJoins);
+
+            // 2. Events Created (Audit field 'Created' from AuditableBaseEntity)
+            var eventsCreated = await _dbContext.Events
+                .Where(e => e.ClubId == clubId && e.Created >= oneYearAgo)
+                .Select(e => new ActivityPointDto
+                {
+                    Date = e.Created.Date,
+                    Count = 2, // weighted
+                    Type = "EventCreated",
+                    Description = $"Event created: {e.Title}"
+                })
+                .ToListAsync();
+            activityLogs.AddRange(eventsCreated);
+
+            // 3. Attendance
+            var attendances = await _dbContext.EventAttendees
+                .Include(ea => ea.Event)
+                .Where(ea => ea.Event.ClubId == clubId && ea.Created >= oneYearAgo && ea.Status == "Attended")
+                .Select(ea => new ActivityPointDto
+                {
+                    Date = ea.Created.Date,
+                    Count = 1,
+                    Type = "Attendance",
+                    Description = $"Member checked into {ea.Event.Title}"
+                })
+                .ToListAsync();
+            activityLogs.AddRange(attendances);
+
+            stats.ActivityLogs = activityLogs
+                .GroupBy(a => a.Date)
+                .Select(g => new ActivityPointDto
+                {
+                    Date = g.Key,
+                    Count = g.Sum(x => x.Count),
+                    Type = "Mixed", // Simplified for heatmap
+                    Description = string.Join(", ", g.Select(x => x.Description).Distinct().Take(3))
+                })
+                .OrderBy(a => a.Date)
+                .ToList();
+
+            stats.TotalActivityPoints = stats.ActivityLogs.Sum(a => a.Count);
+            return stats;
         }
     }
 }
