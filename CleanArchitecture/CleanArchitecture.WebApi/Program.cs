@@ -31,6 +31,23 @@ builder.Services.AddApiVersioningExtension();
 builder.Services.AddHealthChecks();
 builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.SetIsOriginAllowed(origin =>
+            {
+                var uri = new Uri(origin);
+                return uri.Host == "localhost"
+                    || uri.Host == "127.0.0.1"
+                    || uri.Host == "10.0.2.2";
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 //Build the application
 var app = builder.Build();
 
@@ -44,7 +61,7 @@ else
     app.UseHsts();
 }
 app.UseRouting();
-app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwaggerExtension();
