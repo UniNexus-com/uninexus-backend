@@ -1,8 +1,11 @@
 using CleanArchitecture.Core.Features.Events.Commands.CheckInEvent;
 using CleanArchitecture.Core.Features.Events.Commands.CreateEvent;
 using CleanArchitecture.Core.Features.Events.Commands.DeleteEvent;
+using CleanArchitecture.Core.Features.Events.Commands.MarkAttendance;
+using CleanArchitecture.Core.Features.Events.Commands.RegisterToEvent;
 using CleanArchitecture.Core.Features.Events.Commands.UpdateEvent;
 using CleanArchitecture.Core.Features.Events.Queries.GetAllEvents;
+using CleanArchitecture.Core.Features.Events.Queries.GetEventAttendees;
 using CleanArchitecture.Core.Features.Events.Queries.GetEventById;
 using CleanArchitecture.Core.Features.Student.Queries.GetTranscript;
 using CleanArchitecture.Core.Helpers;
@@ -54,9 +57,35 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> CheckIn(int id)
         {
             var command = new CheckInToEventCommand { EventId = id };
-
             return Ok(await Mediator.Send(command));
         }
+
+        // ── Attendee Endpoints ──────────────────────────────────────────
+
+        /// <summary>GET /v1/Events/{id}/attendees — Liste tüm kayıtlı katılımcılar</summary>
+        [HttpGet("{id}/attendees")]
+        public async Task<IActionResult> GetAttendees(int id)
+        {
+            return Ok(await Mediator.Send(new GetEventAttendeesQuery { EventId = id }));
+        }
+
+        /// <summary>POST /v1/Events/{id}/register — Etkinliğe kayıt ol</summary>
+        [HttpPost("{id}/register")]
+        public async Task<IActionResult> Register(int id)
+        {
+            return Ok(await Mediator.Send(new RegisterToEventCommand { EventId = id }));
+        }
+
+        /// <summary>PUT /v1/Events/{id}/attendees/{userId}/attendance — Klüp lideri katılım işaretle</summary>
+        [HttpPut("{id}/attendees/{userId}/attendance")]
+        public async Task<IActionResult> MarkAttendance(int id, string userId, [FromBody] MarkAttendanceCommand command)
+        {
+            command.EventId = id;
+            command.UserId = userId;
+            return Ok(await Mediator.Send(command));
+        }
+
+        // ── Transcript ──────────────────────────────────────────────────
 
         [HttpGet("transcript")]
         public async Task<IActionResult> DownloadTranscript()
@@ -64,9 +93,7 @@ namespace CleanArchitecture.WebApi.Controllers
             var query = new GetTranscriptQuery { UserId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value };
             var response = await Mediator.Send(query);
 
-           
             var pdfBytes = TranscriptPdfGenerator.Generate(response.Data);
-
             return File(pdfBytes, "application/pdf", $"Transcrit_{response.Data.StudentNumber}.pdf");
         }
     }

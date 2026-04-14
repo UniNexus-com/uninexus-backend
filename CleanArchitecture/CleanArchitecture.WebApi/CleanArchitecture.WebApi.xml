@@ -4,5 +4,14 @@
         <name>CleanArchitecture.WebApi</name>
     </assembly>
     <members>
+        <member name="M:CleanArchitecture.WebApi.Controllers.EventsController.GetAttendees(System.Int32)">
+            <summary>GET /v1/Events/{id}/attendees — Liste tüm kayıtlı katılımcılar</summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.EventsController.Register(System.Int32)">
+            <summary>POST /v1/Events/{id}/register — Etkinliğe kayıt ol</summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.EventsController.MarkAttendance(System.Int32,System.String,CleanArchitecture.Core.Features.Events.Commands.MarkAttendance.MarkAttendanceCommand)">
+            <summary>PUT /v1/Events/{id}/attendees/{userId}/attendance — Klüp lideri katılım işaretle</summary>
+        </member>
     </members>
 </doc>
