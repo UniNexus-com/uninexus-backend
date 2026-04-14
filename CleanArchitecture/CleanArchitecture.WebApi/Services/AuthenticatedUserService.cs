@@ -6,11 +6,13 @@ namespace CleanArchitecture.WebApi.Services
 {
     public class AuthenticatedUserService : IAuthenticatedUserService
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
         public AuthenticatedUserService(IHttpContextAccessor httpContextAccessor)
         {
-            UserId = httpContextAccessor.HttpContext?.User?.FindFirstValue("uid");
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public string UserId { get; }
+        public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirstValue("uid")
+                ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }

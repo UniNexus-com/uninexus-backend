@@ -1,5 +1,5 @@
 ﻿using CleanArchitecture.Core.Enums;
-using CleanArchitecture.Infrastructure.Models;
+using CleanArchitecture.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using System.Threading.Tasks;

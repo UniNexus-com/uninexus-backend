@@ -2,9 +2,9 @@ using CleanArchitecture.Core;
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Infrastructure;
-using CleanArchitecture.Infrastructure.Models;
 using CleanArchitecture.WebApi.Extensions;
 using CleanArchitecture.WebApi.Services;
+using CleanArchitecture.WebApi.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -27,6 +27,9 @@ builder.Services.AddApplicationLayer();
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddSwaggerExtension();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddApiVersioningExtension();
 builder.Services.AddHealthChecks();
 builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
@@ -71,6 +74,8 @@ app.UseHealthChecks("/health");
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+
+    endpoints.MapHub<CleanArchitecture.WebApi.Hubs.NotificationHub>("/hubs/notifications");
 });
 
 

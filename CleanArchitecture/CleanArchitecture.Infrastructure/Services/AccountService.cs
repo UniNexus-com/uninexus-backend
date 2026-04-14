@@ -9,7 +9,6 @@ using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Core.Wrappers;
 using CleanArchitecture.Infrastructure.Contexts;
 using CleanArchitecture.Infrastructure.Helpers;
-using CleanArchitecture.Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;

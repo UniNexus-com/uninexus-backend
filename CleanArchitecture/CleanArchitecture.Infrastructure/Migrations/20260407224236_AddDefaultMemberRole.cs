@@ -12,19 +12,19 @@ namespace CleanArchitecture.Infrastructure.Migrations
         {
             // Seed missing system roles safely
             migrationBuilder.Sql(@"
-INSERT INTO club_roles (name, is_system_role, club_id, ""Created"", ""CreatedBy"")
+INSERT INTO club_roles (name, is_system_role, club_id, created, created_by)
 SELECT 'Vice President', true, null, NOW(), 'migration'
 WHERE NOT EXISTS (SELECT 1 FROM club_roles WHERE name = 'Vice President' AND is_system_role = true AND club_id IS NULL);
 
-INSERT INTO club_roles (name, is_system_role, club_id, ""Created"", ""CreatedBy"")
+INSERT INTO club_roles (name, is_system_role, club_id, created, created_by)
 SELECT 'Treasurer', true, null, NOW(), 'migration'
 WHERE NOT EXISTS (SELECT 1 FROM club_roles WHERE name = 'Treasurer' AND is_system_role = true AND club_id IS NULL);
 
-INSERT INTO club_roles (name, is_system_role, club_id, ""Created"", ""CreatedBy"")
+INSERT INTO club_roles (name, is_system_role, club_id, created, created_by)
 SELECT 'Secretary', true, null, NOW(), 'migration'
 WHERE NOT EXISTS (SELECT 1 FROM club_roles WHERE name = 'Secretary' AND is_system_role = true AND club_id IS NULL);
 
-INSERT INTO club_roles (name, is_system_role, club_id, ""Created"", ""CreatedBy"")
+INSERT INTO club_roles (name, is_system_role, club_id, created, created_by)
 SELECT 'Active Member', true, null, NOW(), 'migration'
 WHERE NOT EXISTS (SELECT 1 FROM club_roles WHERE name = 'Active Member' AND is_system_role = true AND club_id IS NULL);
 
@@ -42,6 +42,8 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS default_club_role_trigger ON user_clubs;
 
 CREATE TRIGGER default_club_role_trigger
 BEFORE INSERT ON user_clubs

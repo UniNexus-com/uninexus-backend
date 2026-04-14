@@ -2,7 +2,7 @@ using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Infrastructure.Contexts;
-using CleanArchitecture.Infrastructure.Models;
+using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Infrastructure.Repository;
 using CleanArchitecture.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

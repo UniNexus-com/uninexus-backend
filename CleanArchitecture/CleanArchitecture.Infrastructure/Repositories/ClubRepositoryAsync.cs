@@ -2,7 +2,6 @@ using CleanArchitecture.Core.DTOs.Clubs;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Infrastructure.Contexts;
-using CleanArchitecture.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

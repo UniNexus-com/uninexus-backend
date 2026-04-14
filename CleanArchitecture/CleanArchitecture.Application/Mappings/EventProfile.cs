@@ -1,6 +1,7 @@
 using AutoMapper;
 using CleanArchitecture.Core.DTOs.Event;
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Features.Events.Commands.CreateEvent;
 
 namespace CleanArchitecture.Core.Mappings
 {
@@ -9,7 +10,7 @@ namespace CleanArchitecture.Core.Mappings
         public EventProfile()
         {
             CreateMap<Event, EventViewModel>();
-            CreateMap<CleanArchitecture.Core.Features.Events.Commands.CreateEvent.CreateEventCommand, Event>();
+            CreateMap<CreateEventCommand, Event>();
         }
     }
 }

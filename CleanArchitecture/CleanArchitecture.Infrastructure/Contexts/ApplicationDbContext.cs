@@ -1,6 +1,5 @@
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Entities;
-using CleanArchitecture.Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

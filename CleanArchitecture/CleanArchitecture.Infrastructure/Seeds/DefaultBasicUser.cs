@@ -1,8 +1,8 @@
 ﻿using CleanArchitecture.Core.Enums;
-using CleanArchitecture.Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using System.Threading.Tasks;
+using CleanArchitecture.Core.Entities;
 
 namespace CleanArchitecture.Infrastructure.Seeds
 {

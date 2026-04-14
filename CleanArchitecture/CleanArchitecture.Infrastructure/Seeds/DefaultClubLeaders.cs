@@ -1,7 +1,6 @@
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Infrastructure.Contexts;
-using CleanArchitecture.Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
