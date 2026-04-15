@@ -32,6 +32,17 @@ namespace CleanArchitecture.WebApi.Controllers
         [HttpPost("broadcast")]
         public async Task<IActionResult> BroadCastAnnouncement([FromBody] AnnouncementRequest request)
         {
+            var command = new CreateGlobalAnnouncementCommand
+            {
+                Title = request.Title,
+                Message = request.Message,
+                Priority = request.Priority
+            };
+
+            var result = await Mediator.Send(command);
+
+            if (!result.Succeeded) return BadRequest(result);
+
             await _notificationService.BroadcastMessageAsync(request.Title, request.Message);
 
             return Ok(new { Success = true, Message = "Announcement broadcasted successfully." });
