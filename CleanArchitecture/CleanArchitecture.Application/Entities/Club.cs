@@ -8,6 +8,7 @@ namespace CleanArchitecture.Core.Entities
         public string Description { get; set; }
         public string LogoUrl { get; set; }
         public bool IsActive { get; set; }
+        public string Status { get; set; } = "ACTIVE"; // "ACTIVE" | "PENDING" | "CLOSED"
         public decimal? TotalBudget { get; set; }
 
         public ICollection<Event> Events { get; set; } = new List<Event>();

@@ -16,5 +16,7 @@ namespace CleanArchitecture.Core.Interfaces
         Task<string> ResetPasswordAsync(ResetPasswordRequest model);
         Task<AuthenticationResponse> RefreshTokenAsync(string token, string ipAddress);
         Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds);
+        Task<IEnumerable<UserAdminDto>> GetAllUsersAsync();
+        Task<string> ChangeUserRoleAsync(string userId, string newRole, int? clubId);
     }
 }

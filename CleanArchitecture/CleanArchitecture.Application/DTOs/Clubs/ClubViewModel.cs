@@ -9,6 +9,7 @@ namespace CleanArchitecture.Core.DTOs.Clubs
         public string Description { get; set; }
         public string LogoUrl { get; set; }
         public bool IsActive { get; set; }
+        public string Status { get; set; }
         public decimal? TotalBudget { get; set; }
         public DateTime Created { get; set; }
         public string CreatedBy { get; set; }

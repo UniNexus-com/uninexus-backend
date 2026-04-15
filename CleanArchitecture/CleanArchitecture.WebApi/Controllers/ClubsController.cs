@@ -1,4 +1,5 @@
 using CleanArchitecture.Core.Features.Clubs.Commands.AcceptJoinRequest;
+using CleanArchitecture.Core.Features.Clubs.Commands.UpdateClubStatus;
 using CleanArchitecture.Core.Features.Clubs.Commands.DeclineJoinRequest;
 using CleanArchitecture.Core.Features.Clubs.Commands.UpdateClubBudget;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs;
@@ -103,6 +104,14 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> GetStats(int id)
         {
             return Ok(await Mediator.Send(new GetClubStatsQuery { ClubId = id }));
+        }
+
+        [HttpPut("{id}/status")]
+        [Authorize(Roles = "SKS_ADMIN")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateClubStatusCommand command)
+        {
+            if (id != command.Id) return BadRequest();
+            return Ok(await Mediator.Send(command));
         }
     }
 }

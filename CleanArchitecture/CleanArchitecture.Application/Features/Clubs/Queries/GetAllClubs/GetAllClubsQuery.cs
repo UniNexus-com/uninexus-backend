@@ -55,6 +55,7 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs
                 Description = c.Description,
                 LogoUrl = c.LogoUrl,
                 IsActive = c.IsActive,
+                Status = c.Status ?? (c.IsActive ? "ACTIVE" : "CLOSED"),
                 TotalBudget = c.TotalBudget,
                 Created = c.Created,
                 CreatedBy = c.CreatedBy,
