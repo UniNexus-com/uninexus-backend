@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.DTOs.Announcement
 {
-    public class AnnouncementRequest
+    public class AnnouncementResponse
     {
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string Title { get; set; }
         public string Message { get; set; }
         public AnnouncementPriority Priority { get; set; }

@@ -18,5 +18,10 @@ namespace CleanArchitecture.WebApi.Services
         {
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", title, message);
         }
+
+        public async Task BroadcastToGroupAsync(string groupName, string title, string message)
+        {
+            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNotification", title, message);
+        }
     }
 }

@@ -26,6 +26,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<EventAttendee> EventAttendees { get; set; }
         public DbSet<Asset> Assets { get; set; }
         public DbSet<BudgetRequest> BudgetRequests { get; set; }
+        public DbSet<Announcement> Announcements { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,

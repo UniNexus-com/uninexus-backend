@@ -9,5 +9,7 @@ namespace CleanArchitecture.Core.Interfaces
     public interface INotificationService
     {
         Task BroadcastMessageAsync(string title, string message);
+
+        Task BroadcastToGroupAsync(string groupName, string title, string message);
     }
 }

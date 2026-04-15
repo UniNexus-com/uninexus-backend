@@ -18,6 +18,7 @@ namespace CleanArchitecture.Core.Interfaces
         DbSet<EventAttendee> EventAttendees { get; set; }
         DbSet<Asset> Assets { get; set; }
         DbSet<BudgetRequest> BudgetRequests { get; set; }
+        DbSet<Announcement> Announcements { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
