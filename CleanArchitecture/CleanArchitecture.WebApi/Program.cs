@@ -2,6 +2,7 @@ using CleanArchitecture.Core;
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Infrastructure;
+using CleanArchitecture.Infrastructure.Seeds;
 using CleanArchitecture.WebApi.Extensions;
 using CleanArchitecture.WebApi.Services;
 using CleanArchitecture.WebApi.Hubs;
@@ -87,6 +88,24 @@ Log.Logger = new LoggerConfiguration()
 
 //Application Starting Log
 Log.Information("Application Starting");
+
+// Seed default roles and admin user into the database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<CleanArchitecture.Core.Entities.ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        await DefaultRoles.SeedAsync(userManager, roleManager);
+        await DefaultSuperAdmin.SeedAsync(userManager, roleManager);
+        Log.Information("Seed data applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Seed data already exists or an error occurred — skipping.");
+    }
+}
 
 //Start the application
 app.Run();
