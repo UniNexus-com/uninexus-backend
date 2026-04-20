@@ -1,4 +1,6 @@
 using CleanArchitecture.Core.Features.Clubs.Commands.AcceptJoinRequest;
+using CleanArchitecture.Core.Features.Clubs.Commands.TransferPresident;
+using CleanArchitecture.Core.Features.Clubs.Commands.RemoveMember;
 using CleanArchitecture.Core.Features.Clubs.Commands.UpdateClubStatus;
 using CleanArchitecture.Core.Features.Clubs.Commands.DeclineJoinRequest;
 using CleanArchitecture.Core.Features.Clubs.Commands.UpdateClubBudget;
@@ -51,6 +53,10 @@ namespace CleanArchitecture.WebApi.Controllers
         {
             return Ok(await Mediator.Send(new GetMemberDetailsQuery { ClubId = clubId, UserId = userId }));
         }
+
+        [HttpDelete("{clubId}/members/{userId}")]
+        public async Task<IActionResult> RemoveMember(int clubId, string userId)
+            => Ok(await Mediator.Send(new RemoveMemberCommand { ClubId = clubId, UserId = userId }));
 
         [HttpGet("{id}/join-requests")]
         public async Task<IActionResult> GetJoinRequests(int id)
@@ -111,6 +117,14 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateClubStatusCommand command)
         {
             if (id != command.Id) return BadRequest();
+            return Ok(await Mediator.Send(command));
+        }
+
+        [HttpPut("{clubId}/transfer-president")]
+        [Authorize(Roles = "SKS_ADMIN")]
+        public async Task<IActionResult> TransferPresident(int clubId, [FromBody] TransferPresidentCommand command)
+        {
+            command.ClubId = clubId;
             return Ok(await Mediator.Send(command));
         }
     }

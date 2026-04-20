@@ -46,6 +46,10 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
                 return new Response<string>("Community leader's role cannot be changed.");
             }
 
+            var targetRole = await _dbContext.ClubRoles.FindAsync(request.RoleId);
+            if (targetRole != null && targetRole.IsSystemRole && targetRole.Name == "President")
+                return new Response<string>("President role can only be assigned by an administrator.");
+
             membership.ClubRoleId = request.RoleId;
             
             _dbContext.UserClubs.Update(membership);

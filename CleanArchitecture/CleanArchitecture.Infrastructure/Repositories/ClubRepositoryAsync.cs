@@ -73,6 +73,21 @@ namespace CleanArchitecture.Infrastructure.Repository
                 .ToListAsync();
         }
 
+        public async Task<bool> HasPendingJoinRequestAsync(int clubId, string userId)
+            => await _joinRequests.AnyAsync(jr => jr.ClubId == clubId && jr.UserId == userId && jr.Status == Core.Enums.ClubJoinStatus.Pending);
+
+        public async Task<bool> IsClubMemberAsync(int clubId, string userId)
+            => await _userClubs.AnyAsync(uc => uc.ClubId == clubId && uc.UserId == userId);
+
+        public async Task RemoveMemberAsync(int clubId, string userId)
+        {
+            var userClub = await _userClubs
+                .FirstOrDefaultAsync(uc => uc.ClubId == clubId && uc.UserId == userId);
+            if (userClub == null) throw new KeyNotFoundException("Member not found in this club.");
+            _userClubs.Remove(userClub);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<ClubJoinRequest> GetJoinRequestByIdAsync(int requestId)
         {
             return await _joinRequests.FindAsync(requestId);

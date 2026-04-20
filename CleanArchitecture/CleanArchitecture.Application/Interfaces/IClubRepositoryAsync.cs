@@ -14,5 +14,8 @@ namespace CleanArchitecture.Core.Interfaces
         Task<ClubJoinRequest> GetJoinRequestByIdAsync(int requestId);
         Task UpdateJoinRequestAsync(ClubJoinRequest joinRequest);
         Task<ClubStatsDto> GetClubStatsAsync(int clubId);
+        Task RemoveMemberAsync(int clubId, string userId);
+        Task<bool> IsClubMemberAsync(int clubId, string userId);
+        Task<bool> HasPendingJoinRequestAsync(int clubId, string userId);
     }
 }

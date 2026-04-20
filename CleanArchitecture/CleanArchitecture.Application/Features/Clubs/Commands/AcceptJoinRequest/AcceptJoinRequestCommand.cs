@@ -43,7 +43,11 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.AcceptJoinRequest
             joinRequest.ProcessedDate = DateTime.UtcNow;
             await _clubRepository.UpdateJoinRequestAsync(joinRequest);
             
-            // 2. Add User to Club
+            // 2. Guard: user must not already be a member
+            if (await _clubRepository.IsClubMemberAsync(joinRequest.ClubId, joinRequest.UserId))
+                throw new ApiException("User is already a member of this club.");
+
+            // 3. Add User to Club
             var userClub = new UserClub
             {
                 UserId = joinRequest.UserId,
