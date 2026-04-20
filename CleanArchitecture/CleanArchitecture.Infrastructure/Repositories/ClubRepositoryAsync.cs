@@ -15,6 +15,7 @@ namespace CleanArchitecture.Infrastructure.Repository
         private readonly DbSet<UserClub> _userClubs;
         private readonly DbSet<ClubJoinRequest> _joinRequests;
         private readonly DbSet<ApplicationUser> _users;
+        private readonly DbSet<ClubRole> _clubRoles;
         private readonly ApplicationDbContext _dbContext;
 
         public ClubRepositoryAsync(ApplicationDbContext dbContext) : base(dbContext)
@@ -23,6 +24,7 @@ namespace CleanArchitecture.Infrastructure.Repository
             _userClubs = dbContext.Set<UserClub>();
             _joinRequests = dbContext.Set<ClubJoinRequest>();
             _users = dbContext.Set<ApplicationUser>();
+            _clubRoles = dbContext.Set<ClubRole>();
         }
 
         public async Task<IReadOnlyList<ClubMemberDto>> GetClubMembersAsync(int clubId)
@@ -202,6 +204,28 @@ namespace CleanArchitecture.Infrastructure.Repository
 
             stats.TotalActivityPoints = stats.ActivityLogs.Sum(a => a.Count);
             return stats;
+        }
+
+        public async Task<IReadOnlyList<Club>> GetPresidentClubsAsync(string userId)
+        {
+            return await _userClubs
+                .Include(uc => uc.Club)
+                .Include(uc => uc.Role)
+                .Where(uc => uc.UserId == userId
+                    && uc.Role != null
+                    && uc.Role.Name == "President")
+                .Select(uc => uc.Club)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsPresidentOfClubAsync(int clubId, string userId)
+        {
+            return await _userClubs
+                .Include(uc => uc.Role)
+                .AnyAsync(uc => uc.ClubId == clubId
+                    && uc.UserId == userId
+                    && uc.Role != null
+                    && uc.Role.Name == "President");
         }
     }
 }

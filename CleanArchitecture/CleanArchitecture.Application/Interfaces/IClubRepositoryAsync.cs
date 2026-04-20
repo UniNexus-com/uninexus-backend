@@ -17,5 +17,7 @@ namespace CleanArchitecture.Core.Interfaces
         Task RemoveMemberAsync(int clubId, string userId);
         Task<bool> IsClubMemberAsync(int clubId, string userId);
         Task<bool> HasPendingJoinRequestAsync(int clubId, string userId);
+        Task<IReadOnlyList<Club>> GetPresidentClubsAsync(string userId);
+        Task<bool> IsPresidentOfClubAsync(int clubId, string userId);
     }
 }

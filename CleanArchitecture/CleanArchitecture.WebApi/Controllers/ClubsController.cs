@@ -10,11 +10,13 @@ using CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetMemberDetails;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetManagedClubs;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubStats;
+using CleanArchitecture.Core.Features.Clubs.Queries.GetPresidentClubs;
 using CleanArchitecture.Core.Features.Roles.Commands.CreateClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.DeleteClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole;
 using CleanArchitecture.Core.Features.Roles.Queries.GetClubPrivileges;
 using CleanArchitecture.Core.Features.Roles.Queries.GetClubRoles;
+using CleanArchitecture.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -24,10 +26,45 @@ namespace CleanArchitecture.WebApi.Controllers
     [Authorize]
     public class ClubsController : BaseApiController
     {
+        private readonly IClubRepositoryAsync _clubRepository;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+
+        public ClubsController(IClubRepositoryAsync clubRepository, IAuthenticatedUserService authenticatedUserService)
+        {
+            _clubRepository = clubRepository;
+            _authenticatedUserService = authenticatedUserService;
+        }
+
         [HttpGet("managed")]
         public async Task<IActionResult> GetManagedClubs()
         {
             return Ok(await Mediator.Send(new GetManagedClubsQuery()));
+        }
+
+        [HttpGet("president-clubs")]
+        public async Task<IActionResult> GetPresidentClubs()
+        {
+            return Ok(await Mediator.Send(new GetPresidentClubsQuery()));
+        }
+
+        [HttpGet("{id}/validate-access")]
+        public async Task<IActionResult> ValidateClubAccess(int id)
+        {
+            var userId = _authenticatedUserService.UserId;
+            var isPresident = await _clubRepository.IsPresidentOfClubAsync(id, userId);
+            if (!isPresident)
+                return Forbid();
+
+            var club = await _clubRepository.GetByIdAsync(id);
+            if (club == null)
+                return NotFound(new { message = "Club not found." });
+
+            if (club.Status == "PENDING")
+                return BadRequest(new { code = "CLUB_PENDING", message = "This club is suspended." });
+            if (club.Status == "CLOSED")
+                return BadRequest(new { code = "CLUB_CLOSED", message = "This club is closed." });
+
+            return Ok(new { clubId = id, status = club.Status });
         }
 
         [HttpGet]
