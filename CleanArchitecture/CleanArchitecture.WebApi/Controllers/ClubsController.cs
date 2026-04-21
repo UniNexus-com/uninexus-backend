@@ -51,8 +51,8 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> ValidateClubAccess(int id)
         {
             var userId = _authenticatedUserService.UserId;
-            var isPresident = await _clubRepository.IsPresidentOfClubAsync(id, userId);
-            if (!isPresident)
+            var hasAuthority = await _clubRepository.HasAuthorityInClubAsync(id, userId);
+            if (!hasAuthority)
                 return Forbid();
 
             var club = await _clubRepository.GetByIdAsync(id);

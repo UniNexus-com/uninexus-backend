@@ -19,5 +19,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task<bool> HasPendingJoinRequestAsync(int clubId, string userId);
         Task<IReadOnlyList<Club>> GetPresidentClubsAsync(string userId);
         Task<bool> IsPresidentOfClubAsync(int clubId, string userId);
+        Task<bool> HasAuthorityInClubAsync(int clubId, string userId);
     }
 }

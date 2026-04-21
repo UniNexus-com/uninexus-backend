@@ -70,7 +70,12 @@ namespace CleanArchitecture.Infrastructure.Repository
         public async Task<IReadOnlyList<Club>> GetManagedClubsAsync(string userId)
         {
             return await _userClubs
-                .Where(uc => uc.UserId == userId)
+                .Include(uc => uc.Club)
+                .Include(uc => uc.Role)
+                .Where(uc => uc.UserId == userId
+                    && uc.IsActive
+                    && uc.Role != null
+                    && uc.Role.Name != "Active Member")
                 .Select(uc => uc.Club)
                 .ToListAsync();
         }
@@ -226,6 +231,17 @@ namespace CleanArchitecture.Infrastructure.Repository
                     && uc.UserId == userId
                     && uc.Role != null
                     && uc.Role.Name == "President");
+        }
+
+        public async Task<bool> HasAuthorityInClubAsync(int clubId, string userId)
+        {
+            return await _userClubs
+                .Include(uc => uc.Role)
+                .AnyAsync(uc => uc.ClubId == clubId
+                    && uc.UserId == userId
+                    && uc.IsActive
+                    && uc.Role != null
+                    && uc.Role.Name != "Active Member");
         }
     }
 }
