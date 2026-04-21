@@ -259,5 +259,30 @@ namespace CleanArchitecture.Infrastructure.Repository
 
             return userClub.Role.RolePrivileges.Any(rp => rp.Privilege.Name == privilegeName);
         }
+
+        public async Task<ClubUserPermissionsDto> GetClubUserPermissionsAsync(int clubId, string userId)
+        {
+            var userClub = await _userClubs
+                .Include(uc => uc.Club)
+                .Include(uc => uc.Role)
+                .ThenInclude(r => r.RolePrivileges)
+                .ThenInclude(rp => rp.Privilege)
+                .FirstOrDefaultAsync(uc => uc.ClubId == clubId && uc.UserId == userId && uc.IsActive);
+
+            if (userClub == null || userClub.Role == null) return null;
+
+            var permissions = new ClubUserPermissionsDto
+            {
+                ClubId = clubId,
+                Status = userClub.Club.Status,
+                Role = userClub.Role.Name,
+                IsPresident = userClub.Role.Name == "President",
+                Privileges = userClub.Role.Name == "President"
+                    ? await _dbContext.ClubPrivileges.Select(p => p.Name).ToListAsync()
+                    : userClub.Role.RolePrivileges.Select(rp => rp.Privilege.Name).ToList()
+            };
+
+            return permissions;
+        }
     }
 }
