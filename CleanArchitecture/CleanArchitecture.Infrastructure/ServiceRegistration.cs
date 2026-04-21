@@ -74,13 +74,19 @@ namespace CleanArchitecture.Infrastructure
                             if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs")))
                             {
                                 context.Token = accessToken;
+                                string tokenStr = accessToken.ToString();
+                                Console.WriteLine($"[SignalR Debug] Token extracted from query: {tokenStr?.Substring(0, Math.Min(10, tokenStr.Length))}...");
                             }
-                            return Task.CompletedTask;
+                            else
+                            {
+                                Console.WriteLine("[SignalR Debug] No token in query or path mismatch.");
+                            }
+                            return System.Threading.Tasks.Task.CompletedTask;
                         },
                         OnAuthenticationFailed = c =>
                         {
                             c.NoResult();
-                            c.Response.StatusCode = 500;
+                            c.Response.StatusCode = 401;
                             c.Response.ContentType = "text/plain";
                             return c.Response.WriteAsync(c.Exception.ToString());
                         },
