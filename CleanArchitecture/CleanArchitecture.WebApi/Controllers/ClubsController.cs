@@ -128,8 +128,8 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> DeleteRole(int clubId, int roleId)
             => Ok(await Mediator.Send(new DeleteClubRoleCommand { Id = roleId }));
 
-        [HttpPut("{id}/role")]
-        public async Task<IActionResult> UpdateMemberRole(int clubId, string userId, UpdateMemberRoleCommand command)
+        [HttpPut("{clubId}/members/{userId}/role")]
+        public async Task<IActionResult> UpdateMemberRole(int clubId, string userId, [FromBody] UpdateMemberRoleCommand command)
         {
             command.ClubId = clubId;
             command.UserId = userId;

@@ -36,6 +36,7 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
 
             var membership = await _dbContext.UserClubs
                 .Include(uc => uc.Role)
+                .AsTracking()
                 .SingleOrDefaultAsync(uc => uc.UserId == request.UserId && uc.ClubId == request.ClubId, cancellationToken);
             
             if (membership == null) return new Response<string>("Membership not found.");
@@ -55,7 +56,7 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
             _dbContext.UserClubs.Update(membership);
             await _dbContext.SaveChangesAsync(cancellationToken);
             
-            return new Response<string>(request.UserId);
+            return new Response<string>(request.UserId, "Role updated successfully.");
         }
     }
 }
