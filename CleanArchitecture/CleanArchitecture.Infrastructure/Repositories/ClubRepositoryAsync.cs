@@ -243,5 +243,21 @@ namespace CleanArchitecture.Infrastructure.Repository
                     && uc.Role != null
                     && uc.Role.Name != "Active Member");
         }
+
+        public async Task<bool> HasPrivilegeInClubAsync(int clubId, string userId, string privilegeName)
+        {
+            var userClub = await _userClubs
+                .Include(uc => uc.Role)
+                .ThenInclude(r => r.RolePrivileges)
+                .ThenInclude(rp => rp.Privilege)
+                .FirstOrDefaultAsync(uc => uc.ClubId == clubId && uc.UserId == userId && uc.IsActive);
+
+            if (userClub == null || userClub.Role == null) return false;
+
+            // President has all privileges
+            if (userClub.Role.Name == "President") return true;
+
+            return userClub.Role.RolePrivileges.Any(rp => rp.Privilege.Name == privilegeName);
+        }
     }
 }

@@ -28,10 +28,14 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
     public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Response<int>>
     {
         private readonly IGenericRepositoryAsync<Entities.Event> _eventRepository;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public UpdateEventCommandHandler(IGenericRepositoryAsync<Entities.Event> eventRepository)
+        public UpdateEventCommandHandler(IGenericRepositoryAsync<Entities.Event> eventRepository, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
             _eventRepository = eventRepository;
+            _authenticatedUserService = authenticatedUserService;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(UpdateEventCommand request, CancellationToken cancellationToken)
@@ -41,6 +45,12 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
             if (eventItem == null)
             {
                 throw new ApiException($"Event Not Found.");
+            }
+
+            if (eventItem.ClubId.HasValue)
+            {
+                if (!await _clubRepository.HasPrivilegeInClubAsync(eventItem.ClubId.Value, _authenticatedUserService.UserId, "Manage Events"))
+                    throw new ApiException("You do not have permission to update events in this club.");
             }
 
             eventItem.Title = request.Title;

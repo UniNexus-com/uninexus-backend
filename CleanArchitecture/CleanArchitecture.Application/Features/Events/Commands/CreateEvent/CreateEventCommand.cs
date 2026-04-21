@@ -1,4 +1,5 @@
 using AutoMapper;
+using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
@@ -29,15 +30,25 @@ namespace CleanArchitecture.Core.Features.Events.Commands.CreateEvent
     {
         private readonly IGenericRepositoryAsync<Entities.Event> _eventRepository;
         private readonly IMapper _mapper;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public CreateEventCommandHandler(IGenericRepositoryAsync<Entities.Event> eventRepository, AutoMapper.IMapper mapper)
+        public CreateEventCommandHandler(IGenericRepositoryAsync<Entities.Event> eventRepository, IMapper mapper, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
             _eventRepository = eventRepository;
             _mapper = mapper;
+            _authenticatedUserService = authenticatedUserService;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(CreateEventCommand request, CancellationToken cancellationToken)
         {
+            if (request.ClubId.HasValue)
+            {
+                if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId.Value, _authenticatedUserService.UserId, "Manage Events"))
+                    throw new ApiException("You do not have permission to create events in this club.");
+            }
+
             var eventEntity = _mapper.Map<Entities.Event>(request);
             await _eventRepository.AddAsync(eventEntity);
             return new Response<int>(eventEntity.Id);

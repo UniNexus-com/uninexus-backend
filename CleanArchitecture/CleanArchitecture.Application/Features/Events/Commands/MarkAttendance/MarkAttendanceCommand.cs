@@ -21,15 +21,26 @@ namespace CleanArchitecture.Core.Features.Events.Commands.MarkAttendance
     {
         private readonly IApplicationDbContext _context;
         private readonly IAuthenticatedUserService _authenticatedUser;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public MarkAttendanceCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUser)
+        public MarkAttendanceCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUser, IClubRepositoryAsync clubRepository)
         {
             _context = context;
             _authenticatedUser = authenticatedUser;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<string>> Handle(MarkAttendanceCommand request, CancellationToken cancellationToken)
         {
+            var eventEntity = await _context.Events.FindAsync(new object[] { request.EventId }, cancellationToken);
+            if (eventEntity == null) throw new ApiException("Etkinlik bulunamadı.");
+
+            if (eventEntity.ClubId.HasValue)
+            {
+                if (!await _clubRepository.HasPrivilegeInClubAsync(eventEntity.ClubId.Value, _authenticatedUser.UserId, "Manage Events"))
+                    throw new ApiException("Bu etkinlik için yoklama alma yetkiniz bulunmamaktadır.");
+            }
+
             // Find the attendee record — EF Core tracks by composite key (UserId, EventId)
             var attendee = await _context.EventAttendees
                 .FirstOrDefaultAsync(x => x.EventId == request.EventId && x.UserId == request.UserId, cancellationToken);

@@ -1,5 +1,6 @@
 using AutoMapper;
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
@@ -24,15 +25,25 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.CreateInventoryItem
     {
         private readonly IGenericRepositoryAsync<Asset> _assetRepository;
         private readonly IMapper _mapper;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public CreateInventoryItemCommandHandler(IGenericRepositoryAsync<Asset> assetRepository, IMapper mapper)
+        public CreateInventoryItemCommandHandler(IGenericRepositoryAsync<Asset> assetRepository, IMapper mapper, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
             _assetRepository = assetRepository;
             _mapper = mapper;
+            _authenticatedUserService = authenticatedUserService;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(CreateInventoryItemCommand request, CancellationToken cancellationToken)
         {
+            if (request.ClubId.HasValue)
+            {
+                if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId.Value, _authenticatedUserService.UserId, "Manage Assets"))
+                    throw new ApiException("You do not have permission to manage assets in this club.");
+            }
+
             var asset = _mapper.Map<Asset>(request);
             asset.Status = "AVAILABLE";
             await _assetRepository.AddAsync(asset);

@@ -20,5 +20,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task<IReadOnlyList<Club>> GetPresidentClubsAsync(string userId);
         Task<bool> IsPresidentOfClubAsync(int clubId, string userId);
         Task<bool> HasAuthorityInClubAsync(int clubId, string userId);
+        Task<bool> HasPrivilegeInClubAsync(int clubId, string userId, string privilegeName);
     }
 }

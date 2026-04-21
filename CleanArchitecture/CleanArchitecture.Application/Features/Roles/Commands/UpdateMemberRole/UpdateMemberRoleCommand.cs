@@ -1,4 +1,5 @@
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
@@ -20,15 +21,20 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
     {
         private readonly IApplicationDbContext _dbContext;
         private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public UpdateMemberRoleCommandHandler(IApplicationDbContext dbContext, IAuthenticatedUserService authenticatedUserService)
+        public UpdateMemberRoleCommandHandler(IApplicationDbContext dbContext, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
             _dbContext = dbContext;
             _authenticatedUserService = authenticatedUserService;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<string>> Handle(UpdateMemberRoleCommand request, CancellationToken cancellationToken)
         {
+            if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId, _authenticatedUserService.UserId, "Manage Members"))
+                throw new ApiException("You do not have permission to manage members in this club.");
+
             if (request.UserId == _authenticatedUserService.UserId)
             {
                 return new Response<string>("You cannot change your own role and permissions.");
