@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CleanArchitecture.Infrastructure
 {
@@ -66,10 +67,26 @@ namespace CleanArchitecture.Infrastructure
                     };
                     o.Events = new JwtBearerEvents()
                     {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs")))
+                            {
+                                context.Token = accessToken;
+                                string tokenStr = accessToken.ToString();
+                                Console.WriteLine($"[SignalR Debug] Token extracted from query: {tokenStr?.Substring(0, Math.Min(10, tokenStr.Length))}...");
+                            }
+                            else
+                            {
+                                Console.WriteLine("[SignalR Debug] No token in query or path mismatch.");
+                            }
+                            return System.Threading.Tasks.Task.CompletedTask;
+                        },
                         OnAuthenticationFailed = c =>
                         {
                             c.NoResult();
-                            c.Response.StatusCode = 500;
+                            c.Response.StatusCode = 401;
                             c.Response.ContentType = "text/plain";
                             return c.Response.WriteAsync(c.Exception.ToString());
                         },
@@ -78,14 +95,14 @@ namespace CleanArchitecture.Infrastructure
                             context.HandleResponse();
                             context.Response.StatusCode = 401;
                             context.Response.ContentType = "application/json";
-                            var result = "You are not Authorized";
+                            var result = JsonConvert.SerializeObject(new Response<string>("You are not Authorized"));
                             return context.Response.WriteAsync(result);
                         },
                         OnForbidden = context =>
                         {
                             context.Response.StatusCode = 403;
                             context.Response.ContentType = "application/json";
-                            var result = "You are not authorized to access this resource";
+                            var result = JsonConvert.SerializeObject(new Response<string>("You are not authorized to access this resource"));
                             return context.Response.WriteAsync(result);
                         },
                     };

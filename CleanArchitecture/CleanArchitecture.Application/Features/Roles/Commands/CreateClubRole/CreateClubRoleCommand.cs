@@ -1,5 +1,6 @@
 using AutoMapper;
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
@@ -24,15 +25,25 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.CreateClubRole
     {
         private readonly IApplicationDbContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public CreateClubRoleCommandHandler(IApplicationDbContext dbContext, IMapper mapper)
+        public CreateClubRoleCommandHandler(IApplicationDbContext dbContext, IMapper mapper, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _authenticatedUserService = authenticatedUserService;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(CreateClubRoleCommand request, CancellationToken cancellationToken)
         {
+            if (request.ClubId.HasValue)
+            {
+                if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId.Value, _authenticatedUserService.UserId, "Manage Members"))
+                    throw new ApiException("You do not have permission to manage roles in this club.");
+            }
+
             // Validation: Check if a role with the same name already exists in this club
             var existingRole = await _dbContext.ClubRoles
                 .Where(r => r.ClubId == request.ClubId && r.Name.ToLower() == request.Name.ToLower())

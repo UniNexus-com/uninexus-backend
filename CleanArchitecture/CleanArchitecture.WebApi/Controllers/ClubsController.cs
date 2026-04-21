@@ -16,6 +16,7 @@ using CleanArchitecture.Core.Features.Roles.Commands.DeleteClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole;
 using CleanArchitecture.Core.Features.Roles.Queries.GetClubPrivileges;
 using CleanArchitecture.Core.Features.Roles.Queries.GetClubRoles;
+using CleanArchitecture.Core.DTOs.Clubs;
 using CleanArchitecture.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,20 +52,17 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> ValidateClubAccess(int id)
         {
             var userId = _authenticatedUserService.UserId;
-            var isPresident = await _clubRepository.IsPresidentOfClubAsync(id, userId);
-            if (!isPresident)
+            var permissions = await _clubRepository.GetClubUserPermissionsAsync(id, userId);
+            
+            if (permissions == null)
                 return Forbid();
 
-            var club = await _clubRepository.GetByIdAsync(id);
-            if (club == null)
-                return NotFound(new { message = "Club not found." });
-
-            if (club.Status == "PENDING")
+            if (permissions.Status == "PENDING")
                 return BadRequest(new { code = "CLUB_PENDING", message = "This club is suspended." });
-            if (club.Status == "CLOSED")
+            if (permissions.Status == "CLOSED")
                 return BadRequest(new { code = "CLUB_CLOSED", message = "This club is closed." });
 
-            return Ok(new { clubId = id, status = club.Status });
+            return Ok(new CleanArchitecture.Core.Wrappers.Response<ClubUserPermissionsDto>(permissions));
         }
 
         [HttpGet]
@@ -128,8 +126,8 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> DeleteRole(int clubId, int roleId)
             => Ok(await Mediator.Send(new DeleteClubRoleCommand { Id = roleId }));
 
-        [HttpPut("{id}/role")]
-        public async Task<IActionResult> UpdateMemberRole(int clubId, string userId, UpdateMemberRoleCommand command)
+        [HttpPut("{clubId}/members/{userId}/role")]
+        public async Task<IActionResult> UpdateMemberRole(int clubId, string userId, [FromBody] UpdateMemberRoleCommand command)
         {
             command.ClubId = clubId;
             command.UserId = userId;

@@ -15,10 +15,14 @@ namespace CleanArchitecture.Core.Features.Events.Commands.DeleteEvent
     public class DeleteEventCommandHandler : IRequestHandler<DeleteEventCommand, Response<int>>
     {
         private readonly IGenericRepositoryAsync<Entities.Event> _eventRepository;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public DeleteEventCommandHandler(IGenericRepositoryAsync<Entities.Event> eventRepository)
+        public DeleteEventCommandHandler(IGenericRepositoryAsync<Entities.Event> eventRepository, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
             _eventRepository = eventRepository;
+            _authenticatedUserService = authenticatedUserService;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(DeleteEventCommand request, CancellationToken cancellationToken)
@@ -28,6 +32,12 @@ namespace CleanArchitecture.Core.Features.Events.Commands.DeleteEvent
             if (eventItem == null)
             {
                 throw new ApiException($"Event Not Found.");
+            }
+
+            if (eventItem.ClubId.HasValue)
+            {
+                if (!await _clubRepository.HasPrivilegeInClubAsync(eventItem.ClubId.Value, _authenticatedUserService.UserId, "Manage Events"))
+                    throw new ApiException("You do not have permission to delete events in this club.");
             }
 
             await _eventRepository.DeleteAsync(eventItem);

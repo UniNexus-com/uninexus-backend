@@ -70,7 +70,12 @@ namespace CleanArchitecture.Infrastructure.Repository
         public async Task<IReadOnlyList<Club>> GetManagedClubsAsync(string userId)
         {
             return await _userClubs
-                .Where(uc => uc.UserId == userId)
+                .Include(uc => uc.Club)
+                .Include(uc => uc.Role)
+                .Where(uc => uc.UserId == userId
+                    && uc.IsActive
+                    && uc.Role != null
+                    && uc.Role.Name != "Active Member")
                 .Select(uc => uc.Club)
                 .ToListAsync();
         }
@@ -226,6 +231,58 @@ namespace CleanArchitecture.Infrastructure.Repository
                     && uc.UserId == userId
                     && uc.Role != null
                     && uc.Role.Name == "President");
+        }
+
+        public async Task<bool> HasAuthorityInClubAsync(int clubId, string userId)
+        {
+            return await _userClubs
+                .Include(uc => uc.Role)
+                .AnyAsync(uc => uc.ClubId == clubId
+                    && uc.UserId == userId
+                    && uc.IsActive
+                    && uc.Role != null
+                    && uc.Role.Name != "Active Member");
+        }
+
+        public async Task<bool> HasPrivilegeInClubAsync(int clubId, string userId, string privilegeName)
+        {
+            var userClub = await _userClubs
+                .Include(uc => uc.Role)
+                .ThenInclude(r => r.RolePrivileges)
+                .ThenInclude(rp => rp.Privilege)
+                .FirstOrDefaultAsync(uc => uc.ClubId == clubId && uc.UserId == userId && uc.IsActive);
+
+            if (userClub == null || userClub.Role == null) return false;
+
+            // President has all privileges
+            if (userClub.Role.Name == "President") return true;
+
+            return userClub.Role.RolePrivileges.Any(rp => rp.Privilege.Name == privilegeName);
+        }
+
+        public async Task<ClubUserPermissionsDto> GetClubUserPermissionsAsync(int clubId, string userId)
+        {
+            var userClub = await _userClubs
+                .Include(uc => uc.Club)
+                .Include(uc => uc.Role)
+                .ThenInclude(r => r.RolePrivileges)
+                .ThenInclude(rp => rp.Privilege)
+                .FirstOrDefaultAsync(uc => uc.ClubId == clubId && uc.UserId == userId && uc.IsActive);
+
+            if (userClub == null || userClub.Role == null) return null;
+
+            var permissions = new ClubUserPermissionsDto
+            {
+                ClubId = clubId,
+                Status = userClub.Club.Status,
+                Role = userClub.Role.Name,
+                IsPresident = userClub.Role.Name == "President",
+                Privileges = userClub.Role.Name == "President"
+                    ? await _dbContext.ClubPrivileges.Select(p => p.Name).ToListAsync()
+                    : userClub.Role.RolePrivileges.Select(rp => rp.Privilege.Name).ToList()
+            };
+
+            return permissions;
         }
     }
 }

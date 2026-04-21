@@ -29,6 +29,10 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.DeclineJoinRequest
         {
             var joinRequest = await _clubRepository.GetJoinRequestByIdAsync(request.Id);
             if (joinRequest == null) throw new ApiException("Join request not found.");
+
+            if (!await _clubRepository.HasPrivilegeInClubAsync(joinRequest.ClubId, _authenticatedUserService.UserId, "Manage Members"))
+                throw new ApiException("You do not have permission to manage members in this club.");
+
             if (joinRequest.Status != ClubJoinStatus.Pending) throw new ApiException("Request already processed.");
 
             joinRequest.Status = ClubJoinStatus.Rejected;

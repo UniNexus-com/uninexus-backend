@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
@@ -25,19 +25,21 @@ namespace CleanArchitecture.Core.Features.Announcements.Commands
     public class CreateClubAnnouncementCommandHandler : IRequestHandler<CreateClubAnnouncementCommand, Response<int>>
     {
         private readonly IApplicationDbContext _context;
-        public CreateClubAnnouncementCommandHandler(IApplicationDbContext context)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IClubRepositoryAsync _clubRepository;
+
+        public CreateClubAnnouncementCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
             _context = context;
+            _authenticatedUserService = authenticatedUserService;
+            _clubRepository = clubRepository;
         }
+
         public async Task<Response<int>> Handle(CreateClubAnnouncementCommand request, CancellationToken cancellationToken)
         {
-            var isLeader = await _context.UserClubs
-                .AnyAsync(uc =>
-                    uc.ClubId == request.ClubId &&
-                    uc.UserId == request.CurrentUserId,
-                    cancellationToken);
+            var userId = request.CurrentUserId ?? _authenticatedUserService.UserId;
 
-            if (!isLeader)
+            if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId, userId, "Manage Announcements"))
                 return new Response<int>("You do not have the authority to make announcements to this club!");
 
             var announcement = new Announcement

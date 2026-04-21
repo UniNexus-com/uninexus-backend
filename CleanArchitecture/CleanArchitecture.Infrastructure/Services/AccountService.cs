@@ -68,10 +68,7 @@ namespace CleanArchitecture.Infrastructure.Services
 
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            if (request.LoginType == "CLUB_LEADER" && !userRoles.Contains(Roles.CLUB_LEADER.ToString()))
-                throw new ApiException("This account does not have leader privileges.");
-            if (request.LoginType == "SKS_ADMIN" && !userRoles.Contains(Roles.SKS_ADMIN.ToString()))
-                throw new ApiException("This account does not have administrator privileges.");
+            // Strict LoginType role checks removed for automatic role detection
 
             var jwtToken = await GenerateJWToken(user, userRoles);
             var rawToken = TokenHelper.GenerateRawToken();
@@ -79,7 +76,7 @@ namespace CleanArchitecture.Infrastructure.Services
             var refreshToken = new RefreshToken
             {
                 TokenHash = TokenHelper.HashToken(rawToken),
-                Platform = request.LoginType,
+                Platform = request.LoginType ?? "WEB",
                 ApplicationUserId = user.Id,
                 ExpiresAt = DateTime.UtcNow.AddDays(7),
                 CreatedAt = DateTime.UtcNow,
