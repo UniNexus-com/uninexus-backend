@@ -85,10 +85,10 @@ namespace CleanArchitecture.Infrastructure
                         },
                         OnAuthenticationFailed = c =>
                         {
+                            // Log the error but don't write to response - let OnChallenge handle it
+                            Console.WriteLine($"[Auth Failed] {c.Exception.Message}");
                             c.NoResult();
-                            c.Response.StatusCode = 401;
-                            c.Response.ContentType = "text/plain";
-                            return c.Response.WriteAsync(c.Exception.ToString());
+                            return Task.CompletedTask;
                         },
                         OnChallenge = context =>
                         {
