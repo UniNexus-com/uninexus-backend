@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Entities;
@@ -76,7 +76,7 @@ namespace CleanArchitecture.Core.Features.Events.Commands.CheckInEvent
 
             return new Response<string>(
                 data: user.ScoreWalletBalance.ToString(),
-                message: $"Successfully checked in to event. You've earned {pointsToAward} points!"
+                message: $"Successfully checked in to '{evt.Title}'. You've earned {pointsToAward} points!"
                 );
         }
     }

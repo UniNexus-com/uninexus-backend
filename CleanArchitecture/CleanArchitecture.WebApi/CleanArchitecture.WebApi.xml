@@ -4,6 +4,12 @@
         <name>CleanArchitecture.WebApi</name>
     </assembly>
     <members>
+        <member name="M:CleanArchitecture.WebApi.Controllers.AssetsController.Borrow(System.Int32)">
+            <summary>POST /v1/Assets/{id}/borrow — QR ile ekipman ödünç al</summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.AssetsController.Return(System.Int32)">
+            <summary>POST /v1/Assets/{id}/return — QR ile ekipman iade et</summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.EventsController.GetAttendees(System.Int32)">
             <summary>GET /v1/Events/{id}/attendees — Liste tüm kayıtlı katılımcılar</summary>
         </member>

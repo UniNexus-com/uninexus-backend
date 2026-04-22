@@ -25,6 +25,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<ClubJoinRequest> ClubJoinRequests { get; set; }
         public DbSet<EventAttendee> EventAttendees { get; set; }
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<AssetLoan> AssetLoans { get; set; }
         public DbSet<BudgetRequest> BudgetRequests { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
 
@@ -297,6 +298,29 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .HasForeignKey(e => e.ClubId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // -- Asset Loans -----
+            builder.Entity<AssetLoan>(entity =>
+            {
+                entity.ToTable(name: "asset_loans");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+                entity.Property(e => e.AssetId).HasColumnName("asset_id");
+                entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
+                entity.Property(e => e.BorrowedAt).HasColumnName("borrowed_at").IsRequired();
+                entity.Property(e => e.DueDate).HasColumnName("due_date").IsRequired();
+                entity.Property(e => e.ReturnedAt).HasColumnName("returned_at");
+                entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).HasDefaultValue("Active");
+                entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                entity.Property(e => e.Created).HasColumnName("created");
+                entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                entity.Property(e => e.LastModified).HasColumnName("last_modified");
+
+                entity.HasOne(e => e.Asset)
+                    .WithMany()
+                    .HasForeignKey(e => e.AssetId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // -- Budget Requests -----
