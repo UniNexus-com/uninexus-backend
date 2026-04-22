@@ -58,10 +58,15 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
                 return new Response<string>("President role can only be assigned by an administrator.");
 
             membership.ClubRoleId = request.RoleId;
-            
+
             _dbContext.UserClubs.Update(membership);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            
+            var rowsAffected = await _dbContext.SaveChangesAsync(cancellationToken);
+
+            System.Console.WriteLine($"[DIAGNOSTIC] UpdateMemberRole - UserId: {request.UserId}, ClubId: {request.ClubId}, RoleId: {request.RoleId}, RowsAffected: {rowsAffected}");
+
+            if (rowsAffected == 0)
+                return new Response<string>("No rows were updated. The membership may not exist or data is unchanged.");
+
             return new Response<string>(request.UserId, "Role updated successfully.");
         }
     }
