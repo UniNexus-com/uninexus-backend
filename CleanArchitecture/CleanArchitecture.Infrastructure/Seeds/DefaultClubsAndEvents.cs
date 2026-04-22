@@ -20,9 +20,11 @@ namespace CleanArchitecture.Infrastructure.Seeds
             {
                 new ClubPrivilege { Name = "Manage Members", Description = "Can approve/reject join requests and manage roles" },
                 new ClubPrivilege { Name = "Manage Events", Description = "Can create and edit club events" },
-                new ClubPrivilege { Name = "Manage Budget", Description = "Can see and manage club finances" },
+                new ClubPrivilege { Name = "Manage Finances", Description = "Can see and manage club finances" },
                 new ClubPrivilege { Name = "Manage Assets", Description = "Can manage club inventory" },
-                new ClubPrivilege { Name = "View Reports", Description = "Can view club participation and financial reports" }
+                new ClubPrivilege { Name = "View Reports", Description = "Can view club participation and financial reports" },
+                new ClubPrivilege { Name = "Manage Roles", Description = "Can create custom roles and assign them to members" },
+                new ClubPrivilege { Name = "Send Announcements", Description = "Can send club-wide messages and notifications" }
             };
 
             await context.AddRangeAsync(privileges);

@@ -37,11 +37,11 @@ namespace CleanArchitecture.Core.Features.Finance.Commands.UpdateBudgetRequestSt
             var entity = all.FirstOrDefault(r => r.Id == request.Id);
             if (entity == null) return new Response<int>("Budget request not found.");
 
-            // Yetki kontrolü: BudgetRequest'in ait olduğu kulüpte 'Manage Budget' yetkisi gerekli
+            // Yetki kontrolü: BudgetRequest'in ait olduğu kulüpte 'Manage Finances' yetkisi gerekli
             if (entity.ClubId.HasValue)
             {
                 var userId = _authenticatedUserService.UserId;
-                var hasPrivilege = await _clubRepository.HasPrivilegeInClubAsync(entity.ClubId.Value, userId, "Manage Budget");
+                var hasPrivilege = await _clubRepository.HasPrivilegeInClubAsync(entity.ClubId.Value, userId, "Manage Finances");
                 if (!hasPrivilege)
                     throw new ApiException("You do not have permission to update budget request status in this club.");
             }

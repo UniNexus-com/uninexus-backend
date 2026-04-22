@@ -39,7 +39,7 @@ namespace CleanArchitecture.Core.Features.Announcements.Commands
         {
             var userId = request.CurrentUserId ?? _authenticatedUserService.UserId;
 
-            if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId, userId, "Manage Announcements"))
+            if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId, userId, "Send Announcements"))
                 return new Response<int>("You do not have the authority to make announcements to this club!");
 
             var announcement = new Announcement

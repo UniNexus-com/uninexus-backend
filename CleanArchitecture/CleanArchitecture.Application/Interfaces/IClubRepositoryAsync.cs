@@ -23,5 +23,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task<bool> HasPrivilegeInClubAsync(int clubId, string userId, string privilegeName);
         Task<ClubUserPermissionsDto> GetClubUserPermissionsAsync(int clubId, string userId);
         Task<bool> IsClubActiveAsync(int clubId);
+        Task<ClubRole> GetSystemRoleByNameAsync(string roleName);
     }
 }

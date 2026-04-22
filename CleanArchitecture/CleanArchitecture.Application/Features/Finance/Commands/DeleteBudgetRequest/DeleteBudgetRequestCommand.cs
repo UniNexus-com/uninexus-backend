@@ -34,7 +34,7 @@ namespace CleanArchitecture.Core.Features.Finance.Commands.DeleteBudgetRequest
 
             if (entity.ClubId.HasValue)
             {
-                if (!await _clubRepository.HasPrivilegeInClubAsync(entity.ClubId.Value, _authenticatedUserService.UserId, "Manage Budget"))
+                if (!await _clubRepository.HasPrivilegeInClubAsync(entity.ClubId.Value, _authenticatedUserService.UserId, "Manage Finances"))
                     throw new ApiException("You do not have permission to delete budget requests for this club.");
             }
 

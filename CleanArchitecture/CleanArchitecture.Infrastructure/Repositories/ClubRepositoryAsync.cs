@@ -260,6 +260,12 @@ namespace CleanArchitecture.Infrastructure.Repository
             return userClub.Role.RolePrivileges.Any(rp => rp.Privilege.Name == privilegeName);
         }
 
+        public async Task<ClubRole> GetSystemRoleByNameAsync(string roleName)
+        {
+            return await _clubRoles
+                .FirstOrDefaultAsync(r => r.Name == roleName && r.IsSystemRole);
+        }
+
         public async Task<ClubUserPermissionsDto> GetClubUserPermissionsAsync(int clubId, string userId)
         {
             var userClub = await _userClubs

@@ -37,7 +37,7 @@ namespace CleanArchitecture.Core.Features.Finance.Commands.CreateBudgetRequest
         {
             if (request.ClubId.HasValue)
             {
-                if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId.Value, _authenticatedUserService.UserId, "Manage Budget"))
+                if (!await _clubRepository.HasPrivilegeInClubAsync(request.ClubId.Value, _authenticatedUserService.UserId, "Manage Finances"))
                     throw new ApiException("You do not have permission to create budget requests for this club.");
             }
 

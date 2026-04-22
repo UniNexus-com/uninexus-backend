@@ -22,15 +22,18 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.ApproveClubCreationRequ
         private readonly IGenericRepositoryAsync<ClubCreationRequest> _requestRepo;
         private readonly IGenericRepositoryAsync<Club> _clubRepo;
         private readonly IGenericRepositoryAsync<UserClub> _userClubRepo;
+        private readonly IClubRepositoryAsync _clubRepository;
 
         public ApproveClubCreationRequestCommandHandler(
             IGenericRepositoryAsync<ClubCreationRequest> requestRepo,
             IGenericRepositoryAsync<Club> clubRepo,
-            IGenericRepositoryAsync<UserClub> userClubRepo)
+            IGenericRepositoryAsync<UserClub> userClubRepo,
+            IClubRepositoryAsync clubRepository)
         {
             _requestRepo = requestRepo;
             _clubRepo = clubRepo;
             _userClubRepo = userClubRepo;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(ApproveClubCreationRequestCommand request, CancellationToken cancellationToken)
@@ -54,10 +57,12 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.ApproveClubCreationRequ
             };
             await _clubRepo.AddAsync(newClub);
 
+            var presidentRole = await _clubRepository.GetSystemRoleByNameAsync("President");
             var userClub = new UserClub
             {
                 UserId = creationRequest.RequesterUserId,
                 ClubId = newClub.Id,
+                ClubRoleId = presidentRole.Id,
                 JoinDate = DateTime.UtcNow,
                 IsActive = true
             };
