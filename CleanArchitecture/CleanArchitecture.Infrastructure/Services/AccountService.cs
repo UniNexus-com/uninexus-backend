@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.DTOs.Email;
+using CleanArchitecture.Core.DTOs.LeaderbordUserDto;
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Exceptions;
@@ -410,6 +411,54 @@ namespace CleanArchitecture.Infrastructure.Services
             }
 
             return userId;
+        }
+
+        public async Task<List<LeaderboardUserDto>> GetLeaderboardAsync(int limit = 50)
+        {
+            var users = await _userManager.Users
+                .OrderByDescending(u => u.ScoreWalletBalance)
+                .Take(limit)
+                .Select(u => new LeaderboardUserDto
+                {
+                    UserId = u.Id,
+                    StudentNumber = u.StudentNumber,
+                    FullName = u.FullName,
+                    ScoreWalletBalance = u.ScoreWalletBalance
+                })
+                .ToListAsync();
+
+            for (int i = 0; i < users.Count; i++)
+            {
+                users[i].Rank = i + 1;
+            }
+
+            return users;
+        }
+
+        public async Task<List<LeaderboardUserDto>> GetClubLeaderboardAsync(int clubId, int limit = 10)
+        {
+            var clubUsers = await _context.UserClubs
+                .Where(uc => uc.ClubId == clubId && uc.IsActive)
+                .Join(_userManager.Users,
+                    uc => uc.UserId,
+                    u => u.Id,
+                    (uc, u) => new LeaderboardUserDto
+                    {
+                        UserId = u.Id,
+                        StudentNumber = u.StudentNumber,
+                        FullName = u.FullName,
+                        ScoreWalletBalance = u.ScoreWalletBalance
+                    })
+                .OrderByDescending(u => u.ScoreWalletBalance)
+                .Take(limit)
+                .ToListAsync();
+
+            for (int i = 0; i < clubUsers.Count; i++)
+            {
+                clubUsers[i].Rank = i + 1;
+            }
+
+            return clubUsers;
         }
 
         private async Task<string> BuildConfirmEmailUri(ApplicationUser user, string origin)

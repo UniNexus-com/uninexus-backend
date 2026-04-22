@@ -27,6 +27,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<Asset> Assets { get; set; }
         public DbSet<BudgetRequest> BudgetRequests { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
+        public DbSet<ClubCreationRequest> ClubCreationRequests { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,

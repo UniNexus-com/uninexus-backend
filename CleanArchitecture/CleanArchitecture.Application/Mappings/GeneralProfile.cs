@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CleanArchitecture.Core.DTOs.Clubs;
 using CleanArchitecture.Core.Entities;
 
 namespace CleanArchitecture.Core.Mappings
@@ -7,7 +8,7 @@ namespace CleanArchitecture.Core.Mappings
     {
         public GeneralProfile()
         {
-            
+            CreateMap<ClubCreationRequest, ClubCreationRequestDto>();
         }
     }
 }
