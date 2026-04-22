@@ -284,5 +284,12 @@ namespace CleanArchitecture.Infrastructure.Repository
 
             return permissions;
         }
+        public async Task<bool> IsClubActiveAsync(int clubId)
+        {
+            var club = await _dbContext.Clubs.FindAsync(clubId);
+            if (club == null) return false;
+
+            return club.Status != "PENDING" && club.Status != "CLOSED";
+        }
     }
 }
