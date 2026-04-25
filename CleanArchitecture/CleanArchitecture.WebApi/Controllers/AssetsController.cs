@@ -1,6 +1,8 @@
 using CleanArchitecture.Core.Features.Inventory.Commands.CreateInventoryItem;
 using CleanArchitecture.Core.Features.Inventory.Commands.DeleteInventoryItem;
 using CleanArchitecture.Core.Features.Inventory.Commands.UpdateInventoryItemStatus;
+using CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset;
+using CleanArchitecture.Core.Features.Inventory.Commands.ReturnAsset;
 using CleanArchitecture.Core.Features.Inventory.Queries.GetInventory;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,5 +31,15 @@ namespace CleanArchitecture.WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
             => Ok(await Mediator.Send(new DeleteInventoryItemCommand { Id = id }));
+
+        /// <summary>POST /v1/Assets/{id}/borrow — QR ile ekipman ödünç al</summary>
+        [HttpPost("{id}/borrow")]
+        public async Task<IActionResult> Borrow(int id)
+            => Ok(await Mediator.Send(new BorrowAssetCommand { AssetId = id }));
+
+        /// <summary>POST /v1/Assets/{id}/return — QR ile ekipman iade et</summary>
+        [HttpPost("{id}/return")]
+        public async Task<IActionResult> Return(int id)
+            => Ok(await Mediator.Send(new ReturnAssetCommand { AssetId = id }));
     }
 }

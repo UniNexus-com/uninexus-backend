@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.Exceptions;
+using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Wrappers;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -30,6 +30,10 @@ namespace CleanArchitecture.WebApi.Middlewares
                 response.ContentType = "application/json";
                 var errorResponse = new ErrorResponse();
 
+                // Log the actual error for debugging
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[ERROR] {error.GetType().Name}: {error.Message}");
+                Console.ResetColor();
 
                 switch (error)
                 {
@@ -43,6 +47,11 @@ namespace CleanArchitecture.WebApi.Middlewares
                         response.StatusCode = (int)HttpStatusCode.BadRequest;
                         errorResponse.Message ="Some validation errors occured.";
                         errorResponse.Errors = e.Errors;
+                        break;
+                    case EntityNotFoundException e:
+                        // entity not found
+                        response.StatusCode = (int)HttpStatusCode.NotFound;
+                        errorResponse.Message = e.Message;
                         break;
                     case KeyNotFoundException e:
                         // not found error
