@@ -108,28 +108,64 @@ namespace CleanArchitecture.Infrastructure.Repository
 
         public async Task<MemberDetailsDto> GetClubMemberDetailsAsync(int clubId, string userId)
         {
-            var query = from uc in _userClubs
-                        join u in _users on uc.UserId equals u.Id
-                        join r in _dbContext.ClubRoles on uc.ClubRoleId equals r.Id into roles
-                        from r in roles.DefaultIfEmpty()
-                        where uc.ClubId == clubId && uc.UserId == userId
-                        select new MemberDetailsDto
-                        {
-                            Id = u.Id,
-                            Name = u.FullName,
-                            Email = u.Email,
-                            StudentNumber = u.StudentNumber,
-                            Role = r != null ? r.Name : "Member",
-                            RoleColor = r != null ? (r.Name == "President" ? "#ef4444" : "#3b82f6") : "#94a3b8",
-                            IsPresident = r != null && r.Name == "President",
-                            Joined = uc.JoinDate,
-                            Phone = u.PhoneNumber, // Default fields from IdentityUser
-                            Major = "Computer Engineering", // Dummy for now as it's not in DB
-                            Year = "3rd Year", // Dummy for now
-                            Bio = "Bio placeholder" // Dummy for now
-                        };
+            var user = await _users.FindAsync(userId);
+            if (user == null) return null;
 
-            return await query.FirstOrDefaultAsync();
+            var userClub = await _userClubs
+                .Include(uc => uc.Role)
+                .FirstOrDefaultAsync(uc => uc.ClubId == clubId && uc.UserId == userId);
+
+            if (userClub == null) return null;
+
+            // Fetch activities (attendance history)
+            var activities = await _dbContext.EventAttendees
+                .Include(ea => ea.Event)
+                .Where(ea => ea.UserId == userId && ea.Event.ClubId == clubId)
+                .OrderByDescending(ea => ea.Event.StartDate)
+                .Select(ea => new MemberActivityDto
+                {
+                    Title = ea.Event.Title,
+                    Subtitle = ea.Status == "Attended" ? $"Checked in • {ea.Event.StartDate:dd MMM}" : $"{ea.Status} • {ea.Event.StartDate:dd MMM}",
+                    Date = ea.Event.StartDate,
+                    Type = "Attendance",
+                    Status = ea.Status
+                })
+                .Take(5)
+                .ToListAsync();
+
+            // Calculate stats
+            var totalAttended = await _dbContext.EventAttendees
+                .CountAsync(ea => ea.UserId == userId && ea.Event.ClubId == clubId && ea.Status == "Attended");
+            
+            var totalRegistered = await _dbContext.EventAttendees
+                .CountAsync(ea => ea.UserId == userId && ea.Event.ClubId == clubId);
+
+            var reliability = totalRegistered > 0 ? (double)totalAttended / totalRegistered * 100 : 0;
+
+            var details = new MemberDetailsDto
+            {
+                Id = user.Id,
+                Name = user.FullName,
+                Email = user.Email,
+                StudentNumber = user.StudentNumber,
+                Role = userClub.Role?.Name ?? "Member",
+                RoleColor = userClub.Role?.Name == "President" ? "#ef4444" : "#3b82f6",
+                IsPresident = userClub.Role?.Name == "President",
+                Joined = userClub.JoinDate,
+                Phone = user.PhoneNumber,
+                Major = "Engineering", // still hardcoded but better than nothing for now
+                Year = "3rd Year",
+                Bio = "Member of UniNexus",
+                
+                EventsAttended = totalAttended,
+                Reliability = reliability,
+                ProjectsLed = 0, // Not tracked yet
+                MemberTier = totalAttended > 10 ? "Gold" : (totalAttended > 5 ? "Silver" : "Bronze"),
+                
+                Activities = activities
+            };
+
+            return details;
         }
         public async Task<ClubStatsDto> GetClubStatsAsync(int clubId)
         {
