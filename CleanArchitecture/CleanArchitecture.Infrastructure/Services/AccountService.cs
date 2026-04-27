@@ -107,6 +107,8 @@ namespace CleanArchitecture.Infrastructure.Services
                 FullName = user.FullName,
                 Roles = userRoles.ToList(),
                 IsVerified = user.EmailConfirmed,
+                ScoreWalletBalance = user.ScoreWalletBalance,
+                TotalScore = user.TotalScore,
                 RefreshToken = rawToken
             };
         }
@@ -416,14 +418,15 @@ namespace CleanArchitecture.Infrastructure.Services
         public async Task<List<LeaderboardUserDto>> GetLeaderboardAsync(int limit = 50)
         {
             var users = await _userManager.Users
-                .OrderByDescending(u => u.ScoreWalletBalance)
+                .OrderByDescending(u => u.TotalScore)
                 .Take(limit)
                 .Select(u => new LeaderboardUserDto
                 {
                     UserId = u.Id,
                     StudentNumber = u.StudentNumber,
                     FullName = u.FullName,
-                    ScoreWalletBalance = u.ScoreWalletBalance
+                    ScoreWalletBalance = u.ScoreWalletBalance,
+                    TotalScore = u.TotalScore
                 })
                 .ToListAsync();
 
@@ -447,9 +450,10 @@ namespace CleanArchitecture.Infrastructure.Services
                         UserId = u.Id,
                         StudentNumber = u.StudentNumber,
                         FullName = u.FullName,
-                        ScoreWalletBalance = u.ScoreWalletBalance
+                        ScoreWalletBalance = u.ScoreWalletBalance,
+                        TotalScore = u.TotalScore
                     })
-                .OrderByDescending(u => u.ScoreWalletBalance)
+                .OrderByDescending(u => u.TotalScore)
                 .Take(limit)
                 .ToListAsync();
 

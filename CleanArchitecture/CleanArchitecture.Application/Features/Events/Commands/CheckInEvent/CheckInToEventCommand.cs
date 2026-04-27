@@ -55,7 +55,7 @@ namespace CleanArchitecture.Core.Features.Events.Commands.CheckInEvent
             if (user == null)
                 throw new ApiException("User profile not found.");
 
-            int pointsToAward = 10;
+            int pointsToAward = 50;
             user.ScoreWalletBalance += pointsToAward;
 
             _context.Set<ApplicationUser>().Update(user);

@@ -11,6 +11,8 @@ namespace CleanArchitecture.Core.DTOs.Account
         public string Email { get; set; }
         public List<string> Roles { get; set; }
         public bool IsVerified { get; set; }
+        public int ScoreWalletBalance { get; set; }
+        public int TotalScore { get; set; }
         public string JWToken { get; set; }
         [JsonIgnore]
         public string RefreshToken { get; set; }

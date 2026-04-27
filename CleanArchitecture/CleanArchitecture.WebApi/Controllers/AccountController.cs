@@ -89,7 +89,7 @@ namespace CleanArchitecture.WebApi.Controllers
                 HttpOnly = true,  // JS erişemez
                 Expires = System.DateTime.UtcNow.AddDays(7),
                 SameSite = SameSiteMode.Strict, // CSRF koruması
-                Secure = !_env.IsDevelopment() // Sadece prod ortamında secure yap
+                Secure = _env.EnvironmentName != "Development" // Sadece prod ortamında secure yap
             };
             Response.Cookies.Append("refreshToken", token, cookieOptions);
         }
@@ -99,7 +99,7 @@ namespace CleanArchitecture.WebApi.Controllers
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Strict,
-                Secure = !_env.IsDevelopment()
+                Secure = _env.EnvironmentName != "Development"
             });
         }
     }

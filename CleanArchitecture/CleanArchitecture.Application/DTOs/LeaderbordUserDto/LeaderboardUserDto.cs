@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +13,6 @@ namespace CleanArchitecture.Core.DTOs.LeaderbordUserDto
         public string StudentNumber { get; set; }
         public string FullName { get; set; }
         public int ScoreWalletBalance { get; set; }
+        public int TotalScore { get; set; }
     }
 }

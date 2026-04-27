@@ -9,6 +9,7 @@ namespace CleanArchitecture.Core.Entities
         public string FullName { get; set; }
         public string? StudentNumber { get; set; }
         public int ScoreWalletBalance { get; set; } = 0;
+        public int TotalScore { get; set; } = 0;
         public List<RefreshToken> RefreshTokens { get; set; } = new();
         public ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
         public ICollection<ClubJoinRequest> JoinRequests { get; set; } = new List<ClubJoinRequest>();
