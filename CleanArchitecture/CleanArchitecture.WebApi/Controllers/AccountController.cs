@@ -1,8 +1,9 @@
-﻿using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -88,8 +89,7 @@ namespace CleanArchitecture.WebApi.Controllers
                 HttpOnly = true,  // JS erişemez
                 Expires = System.DateTime.UtcNow.AddDays(7),
                 SameSite = SameSiteMode.Strict, // CSRF koruması
-                Secure = true
-                // Secure = !_env.IsDevelopment() // Sadece prod ortamında secure yap
+                Secure = !_env.IsDevelopment() // Sadece prod ortamında secure yap
             };
             Response.Cookies.Append("refreshToken", token, cookieOptions);
         }
@@ -99,7 +99,7 @@ namespace CleanArchitecture.WebApi.Controllers
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Strict,
-                Secure = true
+                Secure = !_env.IsDevelopment()
             });
         }
     }

@@ -72,12 +72,8 @@ app.UseSwaggerExtension();
 app.UseErrorHandlingMiddleware();
 app.UseHealthChecks("/health");
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-
-    endpoints.MapHub<CleanArchitecture.WebApi.Hubs.NotificationHub>("/hubs/notifications");
-});
+app.MapControllers();
+app.MapHub<CleanArchitecture.WebApi.Hubs.NotificationHub>("/hubs/notifications");
 
 
 //Initialize Logger
