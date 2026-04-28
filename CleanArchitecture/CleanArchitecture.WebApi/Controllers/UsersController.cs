@@ -31,6 +31,13 @@ namespace CleanArchitecture.WebApi.Controllers
             return Ok(users);
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string q)
+        {
+            var users = await _accountService.SearchUsersAsync(q);
+            return Ok(users);
+        }
+
         // PUT api/v1/Users/{id}/role
         [HttpPut("{id}/role")]
         [Authorize(Roles = "SKS_ADMIN")]

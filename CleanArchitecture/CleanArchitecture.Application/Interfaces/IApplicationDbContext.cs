@@ -21,6 +21,7 @@ namespace CleanArchitecture.Core.Interfaces
         DbSet<BudgetRequest> BudgetRequests { get; set; }
         DbSet<Announcement> Announcements { get; set; }
         DbSet<ClubCreationRequest> ClubCreationRequests { get; set; }
+        DbSet<ChatMessage> ChatMessages { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         DbSet<TEntity> Set<TEntity>() where TEntity : class;

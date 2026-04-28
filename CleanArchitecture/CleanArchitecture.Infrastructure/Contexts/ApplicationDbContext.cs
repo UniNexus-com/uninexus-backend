@@ -29,6 +29,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<BudgetRequest> BudgetRequests { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<ClubCreationRequest> ClubCreationRequests { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -387,6 +388,30 @@ namespace CleanArchitecture.Infrastructure.Contexts
             builder.Entity<IdentityUserToken<string>>(entity =>
             {
                 entity.ToTable("user_tokens");
+            });
+
+            // -- Chat Messages -----
+            builder.Entity<ChatMessage>(entity =>
+            {
+                entity.ToTable(name: "chat_messages");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+                entity.Property(e => e.SenderId).HasColumnName("sender_id").IsRequired();
+                entity.Property(e => e.ReceiverId).HasColumnName("receiver_id").IsRequired();
+                entity.Property(e => e.Content).HasColumnName("content").IsRequired();
+                entity.Property(e => e.IsRead).HasColumnName("is_read").HasDefaultValue(false);
+                entity.Property(e => e.SentAt).HasColumnName("sent_at").IsRequired();
+                entity.Property(e => e.Reaction).HasColumnName("reaction").HasMaxLength(20);
+
+                entity.HasOne(e => e.Sender)
+                    .WithMany()
+                    .HasForeignKey(e => e.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Receiver)
+                    .WithMany()
+                    .HasForeignKey(e => e.ReceiverId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

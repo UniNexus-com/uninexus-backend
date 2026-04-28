@@ -465,6 +465,33 @@ namespace CleanArchitecture.Infrastructure.Services
             return clubUsers;
         }
 
+        public async Task<IEnumerable<UserAdminDto>> SearchUsersAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return new List<UserAdminDto>();
+
+            query = query.ToLower();
+            var users = await _userManager.Users
+                .Where(u => u.FullName.ToLower().Contains(query) || 
+                            u.UserName.ToLower().Contains(query) || 
+                            u.Email.ToLower().Contains(query))
+                .Take(20)
+                .ToListAsync();
+
+            var result = new List<UserAdminDto>();
+            foreach (var user in users)
+            {
+                result.Add(new UserAdminDto
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    StudentNumber = user.StudentNumber
+                });
+            }
+            return result;
+        }
+
         private async Task<string> BuildConfirmEmailUri(ApplicationUser user, string origin)
         {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
