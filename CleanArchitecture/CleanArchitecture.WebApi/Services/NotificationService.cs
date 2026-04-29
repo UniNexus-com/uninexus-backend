@@ -43,5 +43,12 @@ namespace CleanArchitecture.WebApi.Services
         {
             await _hubContext.Clients.User(userId).SendAsync("MessageReacted", messageId, reaction);
         }
+
+        public async Task BroadcastToChannelAsync(int clubId, int channelId, string senderId, string senderName, string senderRoleName, string senderRoleColor, string content, string messageId)
+        {
+            await _hubContext.Clients.Group(clubId.ToString()).SendAsync(
+                "ReceiveChannelMessage",
+                clubId, channelId, senderId, senderName, senderRoleName, senderRoleColor, content, messageId);
+        }
     }
 }

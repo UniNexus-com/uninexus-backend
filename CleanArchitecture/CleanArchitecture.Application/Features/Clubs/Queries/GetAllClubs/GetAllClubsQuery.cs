@@ -20,16 +20,23 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs
         private readonly IGenericRepositoryAsync<Club> _clubRepository;
         private readonly IApplicationDbContext _context;
         private readonly IAccountService _accountService;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
 
-        public GetAllClubsQueryHandler(IGenericRepositoryAsync<Club> clubRepository, IApplicationDbContext context, IAccountService accountService)
+        public GetAllClubsQueryHandler(
+            IGenericRepositoryAsync<Club> clubRepository, 
+            IApplicationDbContext context, 
+            IAccountService accountService,
+            IAuthenticatedUserService authenticatedUserService)
         {
             _clubRepository = clubRepository;
             _context = context;
             _accountService = accountService;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         public async Task<Response<IEnumerable<ClubViewModel>>> Handle(GetAllClubsQuery request, CancellationToken cancellationToken)
         {
+            var userId = _authenticatedUserService.UserId;
             var clubs = await _clubRepository.GetAllAsync();
             var clubIds = clubs.Select(c => c.Id).ToList();
 
@@ -48,6 +55,25 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs
                     g => presidentUsers.TryGetValue(g.First().UserId, out var name) ? name : "Unknown President"
                 );
 
+            // Fetch user's joined clubs
+            var joinedClubIds = new HashSet<int>();
+            var pendingClubIds = new HashSet<int>();
+            
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var joined = await _context.UserClubs
+                    .Where(uc => uc.UserId == userId && uc.IsActive)
+                    .Select(uc => uc.ClubId)
+                    .ToListAsync(cancellationToken);
+                joinedClubIds = new HashSet<int>(joined);
+
+                var pending = await _context.Set<ClubJoinRequest>()
+                    .Where(jr => jr.UserId == userId && jr.Status == Core.Enums.ClubJoinStatus.Pending)
+                    .Select(jr => jr.ClubId)
+                    .ToListAsync(cancellationToken);
+                pendingClubIds = new HashSet<int>(pending);
+            }
+
             var clubViewModels = clubs.Select(c => new ClubViewModel
             {
                 Id = c.Id,
@@ -59,7 +85,9 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs
                 TotalBudget = c.TotalBudget,
                 Created = c.Created,
                 CreatedBy = c.CreatedBy,
-                LeaderName = luckyPresidentsDict.TryGetValue(c.Id, out var boss) ? boss : "Unknown Leader"
+                LeaderName = luckyPresidentsDict.TryGetValue(c.Id, out var boss) ? boss : "Unknown Leader",
+                IsJoined = joinedClubIds.Contains(c.Id),
+                IsPending = pendingClubIds.Contains(c.Id)
             });
 
             return new Response<IEnumerable<ClubViewModel>>(clubViewModels);

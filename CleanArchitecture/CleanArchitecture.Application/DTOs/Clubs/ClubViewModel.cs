@@ -14,5 +14,7 @@ namespace CleanArchitecture.Core.DTOs.Clubs
         public DateTime Created { get; set; }
         public string CreatedBy { get; set; }
         public string LeaderName { get; set; }
+        public bool IsJoined { get; set; }
+        public bool IsPending { get; set; }
     }
 }

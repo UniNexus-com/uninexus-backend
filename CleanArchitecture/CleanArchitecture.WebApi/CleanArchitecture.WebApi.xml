@@ -10,6 +10,26 @@
         <member name="M:CleanArchitecture.WebApi.Controllers.AssetsController.Return(System.Int32)">
             <summary>POST /v1/Assets/{id}/return — QR ile ekipman iade et</summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.ClubChannelsController.GetClubChannels(System.Int32)">
+            <summary>
+            Get all channels for a club
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.ClubChannelsController.GetChannelMessages(System.Int32,System.Int32)">
+            <summary>
+            Get message history for a channel
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.ClubChannelsController.SendChannelMessage(System.Int32,System.Int32,CleanArchitecture.Core.DTOs.Chat.SendChannelMessageRequest)">
+            <summary>
+            Send a message to a channel
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.ClubChannelsController.CreateChannel(System.Int32,CleanArchitecture.Core.DTOs.Chat.CreateClubChannelRequest)">
+            <summary>
+            Create a new channel (Leader only)
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.EventsController.GetAttendees(System.Int32)">
             <summary>GET /v1/Events/{id}/attendees — Liste tüm kayıtlı katılımcılar</summary>
         </member>

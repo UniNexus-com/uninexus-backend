@@ -106,6 +106,12 @@ namespace CleanArchitecture.Infrastructure.Repository
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task AddJoinRequestAsync(ClubJoinRequest joinRequest)
+        {
+            await _joinRequests.AddAsync(joinRequest);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<MemberDetailsDto> GetClubMemberDetailsAsync(int clubId, string userId)
         {
             var user = await _users.FindAsync(userId);

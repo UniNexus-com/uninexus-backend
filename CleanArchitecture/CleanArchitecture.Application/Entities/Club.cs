@@ -17,5 +17,6 @@ namespace CleanArchitecture.Core.Entities
         public ICollection<ClubJoinRequest> JoinRequests { get; set; } = new List<ClubJoinRequest>();
         public ICollection<Asset> Assets { get; set; } = new List<Asset>();
         public ICollection<BudgetRequest> BudgetRequests { get; set; } = new List<BudgetRequest>();
+        public ICollection<ClubChannel> Channels { get; set; } = new List<ClubChannel>();
     }
 }

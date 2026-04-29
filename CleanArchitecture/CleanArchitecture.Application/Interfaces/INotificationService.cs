@@ -15,5 +15,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task SendTypingStatusAsync(string userId, string senderId, bool isTyping);
         Task SendReadStatusAsync(string userId, string readerId);
         Task SendReactionAsync(string userId, int messageId, string reaction);
+        Task BroadcastToChannelAsync(int clubId, int channelId, string senderId, string senderName, string senderRoleName, string senderRoleColor, string content, string messageId);
     }
 }

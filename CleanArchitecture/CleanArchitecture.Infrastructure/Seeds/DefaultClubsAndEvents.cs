@@ -3,6 +3,7 @@ using CleanArchitecture.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CleanArchitecture.Infrastructure.Seeds
@@ -254,7 +255,110 @@ namespace CleanArchitecture.Infrastructure.Seeds
 
             await context.Events.AddRangeAsync(events);
             await context.SaveChangesAsync();
+
+            // 6. Seed Default Channels for each club
+            var presidentRole = systemRoles[0]; // President
+            var vpRole = systemRoles[1];         // Vice President
+
+            foreach (var club in clubs)
+            {
+                var generalChannel = new ClubChannel
+                {
+                    ClubId = club.Id,
+                    Name = "general",
+                    Description = "General discussion for all members",
+                    IsDefault = true,
+                    SortOrder = 0,
+                    Created = now,
+                    CreatedBy = "seed"
+                };
+                var announcementsChannel = new ClubChannel
+                {
+                    ClubId = club.Id,
+                    Name = "announcements",
+                    Description = "Official announcements from club leaders",
+                    IsDefault = true,
+                    SortOrder = 1,
+                    Created = now,
+                    CreatedBy = "seed"
+                };
+                var eventsChannel = new ClubChannel
+                {
+                    ClubId = club.Id,
+                    Name = "events",
+                    Description = "Event coordination and updates",
+                    IsDefault = true,
+                    SortOrder = 2,
+                    Created = now,
+                    CreatedBy = "seed"
+                };
+                var qaChannel = new ClubChannel
+                {
+                    ClubId = club.Id,
+                    Name = "q-and-a",
+                    Description = "Questions and answers for all members",
+                    IsDefault = true,
+                    SortOrder = 3,
+                    Created = now,
+                    CreatedBy = "seed"
+                };
+
+                await context.ClubChannels.AddRangeAsync(generalChannel, announcementsChannel, eventsChannel, qaChannel);
+                await context.SaveChangesAsync();
+
+                // #general and #q-and-a: no write roles = everyone can write
+                // #announcements and #events: only President and VP can write
+                var channelWriteRoles = new List<ClubChannelWriteRole>
+                {
+                    new ClubChannelWriteRole { ChannelId = announcementsChannel.Id, ClubRoleId = presidentRole.Id },
+                    new ClubChannelWriteRole { ChannelId = announcementsChannel.Id, ClubRoleId = vpRole.Id },
+                    new ClubChannelWriteRole { ChannelId = eventsChannel.Id, ClubRoleId = presidentRole.Id },
+                    new ClubChannelWriteRole { ChannelId = eventsChannel.Id, ClubRoleId = vpRole.Id },
+                };
+
+                await context.AddRangeAsync(channelWriteRoles);
+                await context.SaveChangesAsync();
+            }
         }
 
+        /// <summary>
+        /// Seeds default channels for all clubs that don't have any channels yet.
+        /// Runs independently so channels get created for existing clubs.
+        /// </summary>
+        public static async Task SeedChannelsAsync(ApplicationDbContext context)
+        {
+            if (await context.ClubChannels.AnyAsync()) return;
+
+            var clubs = await context.Clubs.ToListAsync();
+            if (!clubs.Any()) return;
+
+            var presidentRole = await context.ClubRoles.FirstOrDefaultAsync(r => r.Name == "President");
+            var vpRole = await context.ClubRoles.FirstOrDefaultAsync(r => r.Name == "Vice President");
+            var now = DateTime.UtcNow;
+
+            foreach (var club in clubs)
+            {
+                var generalChannel = new ClubChannel { ClubId = club.Id, Name = "general", Description = "General discussion for all members", IsDefault = true, SortOrder = 0, Created = now, CreatedBy = "seed" };
+                var announcementsChannel = new ClubChannel { ClubId = club.Id, Name = "announcements", Description = "Official announcements from club leaders", IsDefault = true, SortOrder = 1, Created = now, CreatedBy = "seed" };
+                var eventsChannel = new ClubChannel { ClubId = club.Id, Name = "events", Description = "Event coordination and updates", IsDefault = true, SortOrder = 2, Created = now, CreatedBy = "seed" };
+                var qaChannel = new ClubChannel { ClubId = club.Id, Name = "q-and-a", Description = "Questions and answers for all members", IsDefault = true, SortOrder = 3, Created = now, CreatedBy = "seed" };
+
+                await context.ClubChannels.AddRangeAsync(generalChannel, announcementsChannel, eventsChannel, qaChannel);
+                await context.SaveChangesAsync();
+
+                if (presidentRole != null && vpRole != null)
+                {
+                    var writeRoles = new List<ClubChannelWriteRole>
+                    {
+                        new ClubChannelWriteRole { ChannelId = announcementsChannel.Id, ClubRoleId = presidentRole.Id },
+                        new ClubChannelWriteRole { ChannelId = announcementsChannel.Id, ClubRoleId = vpRole.Id },
+                        new ClubChannelWriteRole { ChannelId = eventsChannel.Id, ClubRoleId = presidentRole.Id },
+                        new ClubChannelWriteRole { ChannelId = eventsChannel.Id, ClubRoleId = vpRole.Id },
+                    };
+                    await context.AddRangeAsync(writeRoles);
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
     }
 }

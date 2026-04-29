@@ -30,6 +30,9 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<ClubCreationRequest> ClubCreationRequests { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<ClubChannel> ClubChannels { get; set; }
+        public DbSet<ClubChannelMessage> ClubChannelMessages { get; set; }
+        public DbSet<ClubChannelWriteRole> ClubChannelWriteRoles { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -388,6 +391,73 @@ namespace CleanArchitecture.Infrastructure.Contexts
             builder.Entity<IdentityUserToken<string>>(entity =>
             {
                 entity.ToTable("user_tokens");
+            });
+
+            // -- Club Channels -----
+            builder.Entity<ClubChannel>(entity =>
+            {
+                entity.ToTable(name: "club_channels");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+                entity.Property(e => e.ClubId).HasColumnName("club_id").IsRequired();
+                entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasColumnName("description").HasMaxLength(500);
+                entity.Property(e => e.IsDefault).HasColumnName("is_default").HasDefaultValue(false);
+                entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+                entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                entity.Property(e => e.Created).HasColumnName("created");
+                entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                entity.Property(e => e.LastModified).HasColumnName("last_modified");
+
+                entity.HasOne(e => e.Club)
+                    .WithMany(c => c.Channels)
+                    .HasForeignKey(e => e.ClubId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // -- Club Channel Messages -----
+            builder.Entity<ClubChannelMessage>(entity =>
+            {
+                entity.ToTable(name: "club_channel_messages");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+                entity.Property(e => e.ChannelId).HasColumnName("channel_id").IsRequired();
+                entity.Property(e => e.SenderId).HasColumnName("sender_id").IsRequired();
+                entity.Property(e => e.Content).HasColumnName("content").IsRequired();
+                entity.Property(e => e.SentAt).HasColumnName("sent_at").IsRequired();
+                entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                entity.Property(e => e.Created).HasColumnName("created");
+                entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                entity.Property(e => e.LastModified).HasColumnName("last_modified");
+
+                entity.HasOne(e => e.Channel)
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(e => e.ChannelId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Sender)
+                    .WithMany()
+                    .HasForeignKey(e => e.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // -- Club Channel Write Roles -----
+            builder.Entity<ClubChannelWriteRole>(entity =>
+            {
+                entity.ToTable(name: "club_channel_write_roles");
+                entity.HasKey(e => new { e.ChannelId, e.ClubRoleId });
+                entity.Property(e => e.ChannelId).HasColumnName("channel_id");
+                entity.Property(e => e.ClubRoleId).HasColumnName("club_role_id");
+
+                entity.HasOne(e => e.Channel)
+                    .WithMany(c => c.WriteRoles)
+                    .HasForeignKey(e => e.ChannelId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.ClubRole)
+                    .WithMany()
+                    .HasForeignKey(e => e.ClubRoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // -- Chat Messages -----

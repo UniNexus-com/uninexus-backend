@@ -97,6 +97,11 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         await DefaultRoles.SeedAsync(userManager, roleManager);
         await DefaultSuperAdmin.SeedAsync(userManager, roleManager);
+
+        // Seed default channels for existing clubs
+        var dbContext = services.GetRequiredService<CleanArchitecture.Infrastructure.Contexts.ApplicationDbContext>();
+        await DefaultClubsAndEvents.SeedChannelsAsync(dbContext);
+
         Log.Information("Seed data applied successfully.");
     }
     catch (Exception ex)
