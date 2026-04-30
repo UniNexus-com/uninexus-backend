@@ -18,6 +18,7 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
         public string SearchValue { get; set; }
         public string Status { get; set; } = "PENDING";
         public List<int> ClubIds { get; set; }
+        public List<string> Categories { get; set; }
     }
 
     public class GetPagedBudgetRequestsQueryHandler : IRequestHandler<GetPagedBudgetRequestsQuery, PagedResponse<BudgetRequestViewModel>>
@@ -43,6 +44,9 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
 
             if (request.ClubIds != null && request.ClubIds.Any())
                 query = query.Where(r => r.ClubId.HasValue && request.ClubIds.Contains(r.ClubId.Value));
+
+            if (request.Categories != null && request.Categories.Any())
+                query = query.Where(r => request.Categories.Contains(r.Category));
 
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
