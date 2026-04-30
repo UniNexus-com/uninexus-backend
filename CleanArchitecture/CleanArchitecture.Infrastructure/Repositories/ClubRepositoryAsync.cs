@@ -49,6 +49,35 @@ namespace CleanArchitecture.Infrastructure.Repository
             return await query.ToListAsync();
         }
 
+        public async Task<(IReadOnlyList<ClubMemberDto> Data, int TotalCount)> GetClubMembersPagedAsync(int clubId, int pageNumber, int pageSize)
+        {
+            var query = from uc in _userClubs
+                        join u in _users on uc.UserId equals u.Id
+                        join r in _dbContext.ClubRoles on uc.ClubRoleId equals r.Id into roles
+                        from r in roles.DefaultIfEmpty()
+                        where uc.ClubId == clubId
+                        orderby uc.JoinDate descending
+                        select new ClubMemberDto
+                        {
+                            Id = u.Id,
+                            Name = u.FullName,
+                            Email = u.Email,
+                            Role = r != null ? r.Name : "Member",
+                            RoleId = uc.ClubRoleId,
+                            RoleColor = r != null ? (r.Color ?? "#3b82f6") : "#94a3b8",
+                            IsPresident = r != null && r.Name == "President",
+                            Joined = uc.JoinDate
+                        };
+
+            var totalCount = await query.CountAsync();
+            var data = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (data, totalCount);
+        }
+
         public async Task<IReadOnlyList<ClubJoinRequestDto>> GetClubJoinRequestsAsync(int clubId)
         {
             var query = from jr in _joinRequests
