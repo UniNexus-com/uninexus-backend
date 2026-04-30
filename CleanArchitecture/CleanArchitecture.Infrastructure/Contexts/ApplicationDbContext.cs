@@ -156,6 +156,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(50);
                 entity.Property(e => e.LogoUrl).HasColumnName("logo_url").HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
                 entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).HasDefaultValue("ACTIVE");

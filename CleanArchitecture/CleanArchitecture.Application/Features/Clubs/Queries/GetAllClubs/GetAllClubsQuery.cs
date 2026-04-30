@@ -37,28 +37,30 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs
         public async Task<Response<IEnumerable<ClubViewModel>>> Handle(GetAllClubsQuery request, CancellationToken cancellationToken)
         {
             var userId = _authenticatedUserService.UserId;
-            var clubs = await _clubRepository.GetAllAsync();
-            var clubIds = clubs.Select(c => c.Id).ToList();
 
-            // Fetch official Presidents (Role ID 1) for all clubs
-            var presidents = await _context.UserClubs
-                .Where(uc => clubIds.Contains(uc.ClubId) && uc.ClubRoleId == 1 && uc.IsActive)
+            // Fetch all clubs with their president info and member counts.
+            // Using subqueries in Select is more reliable for LEFT JOIN scenarios in EF Core.
+            var clubsData = await _context.Clubs
+                .AsNoTracking()
+                .Select(club => new
+                {
+                    Club = club,
+                    PresidentUserId = _context.UserClubs
+                        .Where(uc => uc.ClubId == club.Id && uc.ClubRoleId == 1 && uc.IsActive)
+                        .Select(uc => uc.UserId)
+                        .FirstOrDefault(),
+                    MemberCount = _context.UserClubs.Count(x => x.ClubId == club.Id && x.IsActive)
+                })
                 .ToListAsync(cancellationToken);
 
-            var presidentUserIds = presidents.Select(p => p.UserId).Distinct().ToList();
-            var presidentUsers = await _accountService.GetUserNamesAsync(presidentUserIds);
+            // Fetch names for all identified presidents
+            var presidentUserIds = clubsData.Where(x => x.PresidentUserId != null).Select(x => x.PresidentUserId).Distinct().ToList();
+            var presidentNames = await _accountService.GetUserNamesAsync(presidentUserIds);
 
-            var luckyPresidentsDict = presidents
-                .GroupBy(p => p.ClubId)
-                .ToDictionary(
-                    g => g.Key, 
-                    g => presidentUsers.TryGetValue(g.First().UserId, out var name) ? name : "Unknown President"
-                );
-
-            // Fetch user's joined clubs
+            // Fetch current user's status for these clubs
             var joinedClubIds = new HashSet<int>();
             var pendingClubIds = new HashSet<int>();
-            
+
             if (!string.IsNullOrEmpty(userId))
             {
                 var joined = await _context.UserClubs
@@ -67,28 +69,30 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs
                     .ToListAsync(cancellationToken);
                 joinedClubIds = new HashSet<int>(joined);
 
-                var pending = await _context.Set<ClubJoinRequest>()
+                var pending = await _context.ClubJoinRequests
                     .Where(jr => jr.UserId == userId && jr.Status == Core.Enums.ClubJoinStatus.Pending)
                     .Select(jr => jr.ClubId)
                     .ToListAsync(cancellationToken);
                 pendingClubIds = new HashSet<int>(pending);
             }
 
-            var clubViewModels = clubs.Select(c => new ClubViewModel
+            var clubViewModels = clubsData.Select(x => new ClubViewModel
             {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                LogoUrl = c.LogoUrl,
-                IsActive = c.IsActive,
-                Status = c.Status ?? (c.IsActive ? "ACTIVE" : "CLOSED"),
-                TotalBudget = c.TotalBudget,
-                Created = c.Created,
-                CreatedBy = c.CreatedBy,
-                LeaderName = luckyPresidentsDict.TryGetValue(c.Id, out var boss) ? boss : "Unknown Leader",
-                IsJoined = joinedClubIds.Contains(c.Id),
-                IsPending = pendingClubIds.Contains(c.Id)
-            });
+                Id = x.Club.Id,
+                Name = x.Club.Name,
+                Description = x.Club.Description,
+                Category = x.Club.Category ?? "OTHER",
+                LogoUrl = x.Club.LogoUrl,
+                IsActive = x.Club.IsActive,
+                Status = x.Club.Status ?? (x.Club.IsActive ? "ACTIVE" : "CLOSED"),
+                TotalBudget = x.Club.TotalBudget,
+                MemberCount = x.MemberCount,
+                Created = x.Club.Created,
+                CreatedBy = x.Club.CreatedBy,
+                LeaderName = x.PresidentUserId != null && presidentNames.TryGetValue(x.PresidentUserId, out var name) ? name : "Unknown Leader",
+                IsJoined = joinedClubIds.Contains(x.Club.Id),
+                IsPending = pendingClubIds.Contains(x.Club.Id)
+            }).ToList();
 
             return new Response<IEnumerable<ClubViewModel>>(clubViewModels);
         }
