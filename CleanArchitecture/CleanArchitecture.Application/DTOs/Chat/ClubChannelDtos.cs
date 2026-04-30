@@ -12,7 +12,11 @@ namespace CleanArchitecture.Core.DTOs.Chat
         public bool IsDefault { get; set; }
         public int SortOrder { get; set; }
         public bool CanWrite { get; set; }
+        public bool IsVisible { get; set; }
         public List<string> WriteRoleNames { get; set; } = new List<string>();
+        public List<int> WriteRoleIds { get; set; } = new List<int>();
+        public List<string> VisibilityRoleNames { get; set; } = new List<string>();
+        public List<int> VisibilityRoleIds { get; set; } = new List<int>();
     }
 
     public class ChannelMessageDto
@@ -37,5 +41,13 @@ namespace CleanArchitecture.Core.DTOs.Chat
         public string Name { get; set; }
         public string Description { get; set; }
         public List<int> WriteRoleIds { get; set; } = new List<int>();
+    }
+
+    public class UpdateClubChannelRequest
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public List<int> WriteRoleIds { get; set; }
+        public List<int> VisibilityRoleIds { get; set; }
     }
 }

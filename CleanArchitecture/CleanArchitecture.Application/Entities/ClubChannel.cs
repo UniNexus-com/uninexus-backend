@@ -13,5 +13,6 @@ namespace CleanArchitecture.Core.Entities
         public Club Club { get; set; }
         public ICollection<ClubChannelMessage> Messages { get; set; } = new List<ClubChannelMessage>();
         public ICollection<ClubChannelWriteRole> WriteRoles { get; set; } = new List<ClubChannelWriteRole>();
+        public ICollection<ClubChannelVisibilityRole> VisibilityRoles { get; set; } = new List<ClubChannelVisibilityRole>();
     }
 }

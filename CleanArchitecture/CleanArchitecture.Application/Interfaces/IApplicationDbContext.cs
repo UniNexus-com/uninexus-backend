@@ -25,6 +25,7 @@ namespace CleanArchitecture.Core.Interfaces
         DbSet<ClubChannel> ClubChannels { get; set; }
         DbSet<ClubChannelMessage> ClubChannelMessages { get; set; }
         DbSet<ClubChannelWriteRole> ClubChannelWriteRoles { get; set; }
+        DbSet<ClubChannelVisibilityRole> ClubChannelVisibilityRoles { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         DbSet<TEntity> Set<TEntity>() where TEntity : class;

@@ -33,6 +33,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<ClubChannel> ClubChannels { get; set; }
         public DbSet<ClubChannelMessage> ClubChannelMessages { get; set; }
         public DbSet<ClubChannelWriteRole> ClubChannelWriteRoles { get; set; }
+        public DbSet<ClubChannelVisibilityRole> ClubChannelVisibilityRoles { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -451,6 +452,25 @@ namespace CleanArchitecture.Infrastructure.Contexts
 
                 entity.HasOne(e => e.Channel)
                     .WithMany(c => c.WriteRoles)
+                    .HasForeignKey(e => e.ChannelId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.ClubRole)
+                    .WithMany()
+                    .HasForeignKey(e => e.ClubRoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // -- Club Channel Visibility Roles -----
+            builder.Entity<ClubChannelVisibilityRole>(entity =>
+            {
+                entity.ToTable(name: "club_channel_visibility_roles");
+                entity.HasKey(e => new { e.ChannelId, e.ClubRoleId });
+                entity.Property(e => e.ChannelId).HasColumnName("channel_id");
+                entity.Property(e => e.ClubRoleId).HasColumnName("club_role_id");
+
+                entity.HasOne(e => e.Channel)
+                    .WithMany(c => c.VisibilityRoles)
                     .HasForeignKey(e => e.ChannelId)
                     .OnDelete(DeleteBehavior.Cascade);
 

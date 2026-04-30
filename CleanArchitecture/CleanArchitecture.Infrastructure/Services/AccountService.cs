@@ -147,7 +147,7 @@ namespace CleanArchitecture.Infrastructure.Services
                 Body = EmailTemplates.ConfirmEmail(user.FullName, verificationUri)
             });
 
-            return "Register sucess. Please verify your email adress.";
+            return "Register success. Please verify your email address.";
         }
 
         // ── Confirm Email ─────────────────────────────────────────────

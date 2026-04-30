@@ -25,6 +25,7 @@ builder.Configuration.AddJsonFile("appsettings.json");
 builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
 
 // Add services to the container.
+builder.Services.AddHttpClient();   // Brevo API için IHttpClientFactory
 builder.Services.AddApplicationLayer();
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddSwaggerExtension();

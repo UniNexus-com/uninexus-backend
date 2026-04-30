@@ -24,9 +24,9 @@ namespace CleanArchitecture.WebApi.Services
             await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNotification", title, message);
         }
 
-        public async Task SendDirectMessageAsync(string userId, string title, string content, string messageId)
+        public async Task SendDirectMessageAsync(string userId, string senderId, string title, string content, string messageId)
         {
-            await _hubContext.Clients.User(userId).SendAsync("ReceiveDirectMessage", title, content, messageId);
+            await _hubContext.Clients.User(userId).SendAsync("ReceiveDirectMessage", senderId, title, content, messageId);
         }
 
         public async Task SendTypingStatusAsync(string userId, string senderId, bool isTyping)

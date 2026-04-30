@@ -61,8 +61,8 @@ namespace CleanArchitecture.Core.Features.Chat.Commands.SendMessage
                 SentAt = message.SentAt
             };
 
-            // Notify via SignalR
-            await _notificationService.SendDirectMessageAsync(request.ReceiverId, sender.FullName, request.Content, message.Id.ToString());
+            // Notify receiver via SignalR — senderId allows Flutter to match the open chat
+            await _notificationService.SendDirectMessageAsync(request.ReceiverId, request.SenderId, sender.FullName, request.Content, message.Id.ToString());
 
             return new Response<ChatMessageDto>(dto);
         }

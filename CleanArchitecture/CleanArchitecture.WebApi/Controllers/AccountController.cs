@@ -31,13 +31,13 @@ namespace CleanArchitecture.WebApi.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
         {
-            var origin = Request.Headers["origin"].FirstOrDefault() ?? "https://localhost:9001";
+            // Backend'in kendi adresi kullanılır; frontend origin değil
+            var origin = $"{Request.Scheme}://{Request.Host}";
             return Ok(await _accountService.RegisterAsync(request, origin));
         }
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code)
         {
-            var origin = Request.Headers["origin"].FirstOrDefault() ?? "https://localhost:9001";
             return Ok(await _accountService.ConfirmEmailAsync(userId, code));
         }
         [HttpPost("logout")]

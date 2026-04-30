@@ -1,4 +1,5 @@
 using CleanArchitecture.Core.Features.Clubs.Commands.AcceptJoinRequest;
+using CleanArchitecture.Core.Features.Clubs.Commands.CreateClub;
 using CleanArchitecture.Core.Features.Clubs.Commands.SendJoinRequest;
 using CleanArchitecture.Core.Features.Clubs.Commands.TransferPresident;
 using CleanArchitecture.Core.Features.Clubs.Commands.RemoveMember;
@@ -153,6 +154,11 @@ namespace CleanArchitecture.WebApi.Controllers
         {
             return Ok(await Mediator.Send(new GetClubStatsQuery { ClubId = id }));
         }
+
+        [HttpPost]
+        [Authorize(Roles = "SKS_ADMIN")]
+        public async Task<IActionResult> CreateClub([FromBody] CreateClubCommand command)
+            => Ok(await Mediator.Send(command));
 
         [HttpPut("{id}/status")]
         [Authorize(Roles = "SKS_ADMIN")]

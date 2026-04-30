@@ -30,6 +30,16 @@
             Create a new channel (Leader only)
             </summary>
         </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.ClubChannelsController.UpdateChannel(System.Int32,System.Int32,CleanArchitecture.Core.DTOs.Chat.UpdateClubChannelRequest)">
+            <summary>
+            Update a channel's name, description and write roles (Leader only)
+            </summary>
+        </member>
+        <member name="M:CleanArchitecture.WebApi.Controllers.ClubChannelsController.DeleteChannel(System.Int32,System.Int32)">
+            <summary>
+            Delete a channel (Leader only — default channel cannot be deleted)
+            </summary>
+        </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.EventsController.GetAttendees(System.Int32)">
             <summary>GET /v1/Events/{id}/attendees — Liste tüm kayıtlı katılımcılar</summary>
         </member>

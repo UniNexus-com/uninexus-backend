@@ -40,21 +40,30 @@ namespace CleanArchitecture.Core.Features.ClubChannels.Queries.GetClubChannels
                 .Where(c => c.ClubId == request.ClubId)
                 .Include(c => c.WriteRoles)
                     .ThenInclude(wr => wr.ClubRole)
+                .Include(c => c.VisibilityRoles)
+                    .ThenInclude(vr => vr.ClubRole)
                 .OrderBy(c => c.SortOrder)
                 .ThenBy(c => c.Name)
                 .ToListAsync(cancellationToken);
 
-            var dtos = channels.Select(ch => new ClubChannelDto
-            {
-                Id = ch.Id,
-                ClubId = ch.ClubId,
-                Name = ch.Name,
-                Description = ch.Description,
-                IsDefault = ch.IsDefault,
-                SortOrder = ch.SortOrder,
-                CanWrite = !ch.WriteRoles.Any() || ch.WriteRoles.Any(wr => wr.ClubRoleId == userRoleId),
-                WriteRoleNames = ch.WriteRoles.Select(wr => wr.ClubRole.Name).ToList()
-            }).ToList();
+            var dtos = channels
+                // Filter: show channel if no visibility restriction OR user's role is in visibility list
+                .Where(ch => !ch.VisibilityRoles.Any() || ch.VisibilityRoles.Any(vr => vr.ClubRoleId == userRoleId))
+                .Select(ch => new ClubChannelDto
+                {
+                    Id = ch.Id,
+                    ClubId = ch.ClubId,
+                    Name = ch.Name,
+                    Description = ch.Description,
+                    IsDefault = ch.IsDefault,
+                    SortOrder = ch.SortOrder,
+                    CanWrite = !ch.WriteRoles.Any() || ch.WriteRoles.Any(wr => wr.ClubRoleId == userRoleId),
+                    IsVisible = !ch.VisibilityRoles.Any() || ch.VisibilityRoles.Any(vr => vr.ClubRoleId == userRoleId),
+                    WriteRoleNames = ch.WriteRoles.Select(wr => wr.ClubRole.Name).ToList(),
+                    WriteRoleIds = ch.WriteRoles.Select(wr => wr.ClubRoleId).ToList(),
+                    VisibilityRoleNames = ch.VisibilityRoles.Select(vr => vr.ClubRole.Name).ToList(),
+                    VisibilityRoleIds = ch.VisibilityRoles.Select(vr => vr.ClubRoleId).ToList(),
+                }).ToList();
 
             return new Response<List<ClubChannelDto>>(dtos);
         }
