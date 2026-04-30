@@ -1,4 +1,5 @@
 using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Clubs;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.DTOs.LeaderbordUserDto;
 using CleanArchitecture.Core.Entities;
@@ -66,6 +67,9 @@ namespace CleanArchitecture.Infrastructure.Services
 
             if (!user.EmailConfirmed)
                 throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
+
+            if (user.Status == AccountStatus.Suspended)
+                throw new ApiException("Your account has been suspended. Please contact administration.");
 
             var userRoles = await _userManager.GetRolesAsync(user);
 
@@ -285,28 +289,49 @@ namespace CleanArchitecture.Infrastructure.Services
 
         public async Task<IEnumerable<UserAdminDto>> GetAllUsersAsync()
         {
-            var users = await _userManager.Users.ToListAsync();
-            var result = new List<UserAdminDto>();
+            // Fetch all users and their roles in a single query using a join to avoid N+1 problem.
+            // This is crucial for performance when using a remote database with latency.
+            var usersWithRoles = await (from user in _userManager.Users
+                                        join userRole in _context.UserRoles on user.Id equals userRole.UserId into ur
+                                        from userRole in ur.DefaultIfEmpty()
+                                        join role in _context.Roles on userRole.RoleId equals role.Id into r
+                                        from role in r.DefaultIfEmpty()
+                                        select new
+                                        {
+                                            user.Id,
+                                            user.FullName,
+                                            user.Email,
+                                            user.StudentNumber,
+                                            user.Status,
+                                            RoleName = role.Name
+                                        })
+                                        .ToListAsync();
 
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
+            // Group by User Id in memory to map to DTOs
+            var result = usersWithRoles
+                .GroupBy(u => u.Id)
+                .Select(g => {
+                    var first = g.First();
+                    var roles = g.Select(x => x.RoleName).Where(r => r != null).ToList();
 
-                string primaryRole = Roles.STUDENT.ToString();
-                if (roles.Contains(Roles.SKS_ADMIN.ToString()))
-                    primaryRole = Roles.SKS_ADMIN.ToString();
-                else if (roles.Contains(Roles.CLUB_LEADER.ToString()))
-                    primaryRole = Roles.CLUB_LEADER.ToString();
+                    // Determine the primary role for the admin list display
+                    string primaryRole = Roles.STUDENT.ToString();
+                    if (roles.Contains(Roles.SKS_ADMIN.ToString()))
+                        primaryRole = Roles.SKS_ADMIN.ToString();
+                    else if (roles.Contains(Roles.CLUB_LEADER.ToString()))
+                        primaryRole = Roles.CLUB_LEADER.ToString();
 
-                result.Add(new UserAdminDto
-                {
-                    Id            = user.Id,
-                    FullName      = user.FullName,
-                    Email         = user.Email,
-                    StudentNumber = user.StudentNumber,
-                    Role          = primaryRole,
-                });
-            }
+                    return new UserAdminDto
+                    {
+                        Id            = first.Id,
+                        FullName      = first.FullName,
+                        Email         = first.Email,
+                        StudentNumber = first.StudentNumber,
+                        Role          = primaryRole,
+                        Status        = first.Status.ToString()
+                    };
+                })
+                .ToList();
 
             return result;
         }
@@ -415,6 +440,34 @@ namespace CleanArchitecture.Infrastructure.Services
             return userId;
         }
 
+        public async Task<string> SuspendUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) throw new ApiException("User not found.");
+
+            user.Status = AccountStatus.Suspended;
+            var result = await _userManager.UpdateAsync(user);
+            
+            if (!result.Succeeded)
+                throw new ApiException("Failed to suspend user.");
+
+            return user.Id;
+        }
+
+        public async Task<string> ActivateUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) throw new ApiException("User not found.");
+
+            user.Status = AccountStatus.Active;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new ApiException("Failed to activate user.");
+
+            return user.Id;
+        }
+
         public async Task<List<LeaderboardUserDto>> GetLeaderboardAsync(int limit = 50)
         {
             var users = await _userManager.Users
@@ -486,10 +539,39 @@ namespace CleanArchitecture.Infrastructure.Services
                     Id = user.Id,
                     FullName = user.FullName,
                     Email = user.Email,
-                    StudentNumber = user.StudentNumber
+                    StudentNumber = user.StudentNumber,
+                    Status = user.Status.ToString()
                 });
             }
             return result;
+        }
+
+        public async Task<MemberDetailsDto> GetUserDetailsAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
+            string primaryRole = roles.FirstOrDefault() ?? Roles.STUDENT.ToString();
+
+            return new MemberDetailsDto
+            {
+                Id = user.Id,
+                Name = user.FullName,
+                Email = user.Email,
+                StudentNumber = user.StudentNumber,
+                Role = primaryRole,
+                RoleColor = primaryRole == Roles.SKS_ADMIN.ToString() ? "#16a34a" : (primaryRole == Roles.CLUB_LEADER.ToString() ? "#F5A623" : "#3b82f6"),
+                Status = user.Status.ToString(),
+                Joined = DateTime.MinValue, // No specific club join date
+                Phone = user.PhoneNumber,
+                Major = "Engineering",
+                Year = "3rd Year",
+                Bio = "UniNexus User",
+                EventsAttended = 0,
+                Reliability = 100,
+                Activities = new List<MemberActivityDto>()
+            };
         }
 
         private async Task<string> BuildConfirmEmailUri(ApplicationUser user, string origin)

@@ -12,6 +12,7 @@ namespace CleanArchitecture.Core.DTOs.Clubs
         public string Role { get; set; }
         public string RoleColor { get; set; }
         public bool IsPresident { get; set; }
+        public string Status { get; set; }
         public DateTime Joined { get; set; }
         public string Phone { get; set; }
         public string Major { get; set; }

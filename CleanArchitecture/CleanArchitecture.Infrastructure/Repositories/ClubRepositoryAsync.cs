@@ -49,6 +49,44 @@ namespace CleanArchitecture.Infrastructure.Repository
             return await query.ToListAsync();
         }
 
+        public async Task<(IReadOnlyList<ClubMemberDto> Data, int TotalCount)> GetClubMembersPagedAsync(int clubId, int pageNumber, int pageSize, string searchValue)
+        {
+            var query = from uc in _userClubs
+                        join u in _users on uc.UserId equals u.Id
+                        join r in _dbContext.ClubRoles on uc.ClubRoleId equals r.Id into roles
+                        from r in roles.DefaultIfEmpty()
+                        where uc.ClubId == clubId
+                        select new { uc, u, r };
+
+            if (!string.IsNullOrEmpty(searchValue))
+            {
+                searchValue = searchValue.ToLower();
+                query = query.Where(x => x.u.FullName.ToLower().Contains(searchValue) || x.u.Email.ToLower().Contains(searchValue));
+            }
+
+            var finalQuery = query
+                        .OrderByDescending(x => x.uc.JoinDate)
+                        .Select(x => new ClubMemberDto
+                        {
+                            Id = x.u.Id,
+                            Name = x.u.FullName,
+                            Email = x.u.Email,
+                            Role = x.r != null ? x.r.Name : "Member",
+                            RoleId = x.uc.ClubRoleId,
+                            RoleColor = x.r != null ? (x.r.Color ?? "#3b82f6") : "#94a3b8",
+                            IsPresident = x.r != null && x.r.Name == "President",
+                            Joined = x.uc.JoinDate
+                        });
+
+            var totalCount = await finalQuery.CountAsync();
+            var data = await finalQuery
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (data, totalCount);
+        }
+
         public async Task<IReadOnlyList<ClubJoinRequestDto>> GetClubJoinRequestsAsync(int clubId)
         {
             var query = from jr in _joinRequests

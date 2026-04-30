@@ -6,6 +6,7 @@ namespace CleanArchitecture.Core.Entities
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public string Category { get; set; }
         public string LogoUrl { get; set; }
         public bool IsActive { get; set; }
         public string Status { get; set; } = "ACTIVE"; // "ACTIVE" | "PENDING" | "CLOSED"

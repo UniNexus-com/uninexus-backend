@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace CleanArchitecture.Core.Wrappers
 {
@@ -6,12 +6,14 @@ namespace CleanArchitecture.Core.Wrappers
     {
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
+        public int TotalCount { get; set; }
         public List<T> Data { get; set; }
 
-        public PagedResponse(List<T> data, int pageNumber, int pageSize)
+        public PagedResponse(List<T> data, int pageNumber, int pageSize, int totalCount)
         {
             this.PageNumber = pageNumber;
             this.PageSize = pageSize;
+            this.TotalCount = totalCount;
             this.Data = data;
         }
     }

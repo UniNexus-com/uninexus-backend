@@ -1,13 +1,15 @@
 #nullable enable
 using Microsoft.AspNetCore.Identity;
+using CleanArchitecture.Core.Enums;
 using System.Collections.Generic;
 
 namespace CleanArchitecture.Core.Entities
 {
     public class ApplicationUser : IdentityUser
     {
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
         public string? StudentNumber { get; set; }
+        public AccountStatus Status { get; set; } = AccountStatus.Active;
         public int ScoreWalletBalance { get; set; } = 0;
         public int TotalScore { get; set; } = 0;
         public List<RefreshToken> RefreshTokens { get; set; } = new();

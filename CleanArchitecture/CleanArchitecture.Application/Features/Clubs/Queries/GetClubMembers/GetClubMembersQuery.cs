@@ -11,12 +11,15 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
 {
-    public class GetClubMembersQuery : IRequest<Response<IEnumerable<ClubMemberDto>>>
+    public class GetClubMembersQuery : IRequest<PagedResponse<ClubMemberDto>>
     {
         public int ClubId { get; set; }
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public string SearchValue { get; set; }
     }
 
-    public class GetClubMembersQueryHandler : IRequestHandler<GetClubMembersQuery, Response<IEnumerable<ClubMemberDto>>>
+    public class GetClubMembersQueryHandler : IRequestHandler<GetClubMembersQuery, PagedResponse<ClubMemberDto>>
     {
         private readonly IClubRepositoryAsync _clubRepository;
 
@@ -25,11 +28,11 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
             _clubRepository = clubRepository;
         }
 
-        public async Task<Response<IEnumerable<ClubMemberDto>>> Handle(GetClubMembersQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResponse<ClubMemberDto>> Handle(GetClubMembersQuery request, CancellationToken cancellationToken)
         {
-            var members = await _clubRepository.GetClubMembersAsync(request.ClubId);
-            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Count: {members.Count}");
-            return new Response<IEnumerable<ClubMemberDto>>(members);
+            var (members, totalCount) = await _clubRepository.GetClubMembersPagedAsync(request.ClubId, request.PageNumber, request.PageSize, request.SearchValue);
+            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Search: {request.SearchValue}, Page: {request.PageNumber}, Count: {members.Count}, Total: {totalCount}");
+            return new PagedResponse<ClubMemberDto>(members.ToList(), request.PageNumber, request.PageSize, totalCount);
         }
     }
 }
