@@ -16,6 +16,7 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
         public int ClubId { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+        public string SearchValue { get; set; }
     }
 
     public class GetClubMembersQueryHandler : IRequestHandler<GetClubMembersQuery, PagedResponse<ClubMemberDto>>
@@ -29,8 +30,8 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
 
         public async Task<PagedResponse<ClubMemberDto>> Handle(GetClubMembersQuery request, CancellationToken cancellationToken)
         {
-            var (members, totalCount) = await _clubRepository.GetClubMembersPagedAsync(request.ClubId, request.PageNumber, request.PageSize);
-            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Page: {request.PageNumber}, Count: {members.Count}, Total: {totalCount}");
+            var (members, totalCount) = await _clubRepository.GetClubMembersPagedAsync(request.ClubId, request.PageNumber, request.PageSize, request.SearchValue);
+            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Search: {request.SearchValue}, Page: {request.PageNumber}, Count: {members.Count}, Total: {totalCount}");
             return new PagedResponse<ClubMemberDto>(members.ToList(), request.PageNumber, request.PageSize, totalCount);
         }
     }
