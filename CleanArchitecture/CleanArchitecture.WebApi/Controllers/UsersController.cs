@@ -57,13 +57,21 @@ namespace CleanArchitecture.WebApi.Controllers
             return Ok(new { message = "Role updated successfully.", userId = result });
         }
 
-        // PUT api/v1/Users/{id}/suspend
         [HttpPut("{id}/suspend")]
         [Authorize(Roles = "SKS_ADMIN")]
         public async Task<IActionResult> Suspend(string id)
         {
             var result = await _accountService.SuspendUserAsync(id);
             return Ok(new { message = "User suspended successfully.", userId = result });
+        }
+
+        // PUT api/v1/Users/{id}/activate
+        [HttpPut("{id}/activate")]
+        [Authorize(Roles = "SKS_ADMIN")]
+        public async Task<IActionResult> Activate(string id)
+        {
+            var result = await _accountService.ActivateUserAsync(id);
+            return Ok(new { message = "User activated successfully.", userId = result });
         }
 
         // GET api/v1/Users/{id}/activities

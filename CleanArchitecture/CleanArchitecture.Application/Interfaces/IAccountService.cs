@@ -21,6 +21,7 @@ namespace CleanArchitecture.Core.Interfaces
         Task<IEnumerable<UserAdminDto>> GetAllUsersAsync();
         Task<string> ChangeUserRoleAsync(string userId, string newRole, int? clubId);
         Task<string> SuspendUserAsync(string userId);
+        Task<string> ActivateUserAsync(string userId);
         Task<List<LeaderboardUserDto>> GetLeaderboardAsync(int limit = 50);
         Task<List<LeaderboardUserDto>> GetClubLeaderboardAsync(int clubId, int limit = 10);
         Task<IEnumerable<UserAdminDto>> SearchUsersAsync(string query);

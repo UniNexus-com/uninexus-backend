@@ -454,6 +454,20 @@ namespace CleanArchitecture.Infrastructure.Services
             return user.Id;
         }
 
+        public async Task<string> ActivateUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) throw new ApiException("User not found.");
+
+            user.Status = AccountStatus.Active;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new ApiException("Failed to activate user.");
+
+            return user.Id;
+        }
+
         public async Task<List<LeaderboardUserDto>> GetLeaderboardAsync(int limit = 50)
         {
             var users = await _userManager.Users
@@ -548,6 +562,7 @@ namespace CleanArchitecture.Infrastructure.Services
                 StudentNumber = user.StudentNumber,
                 Role = primaryRole,
                 RoleColor = primaryRole == Roles.SKS_ADMIN.ToString() ? "#16a34a" : (primaryRole == Roles.CLUB_LEADER.ToString() ? "#F5A623" : "#3b82f6"),
+                Status = user.Status.ToString(),
                 Joined = DateTime.MinValue, // No specific club join date
                 Phone = user.PhoneNumber,
                 Major = "Engineering",
