@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Features.Users.Queries.GetRecentActivities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -31,6 +32,15 @@ namespace CleanArchitecture.WebApi.Controllers
             return Ok(users);
         }
 
+        // GET api/v1/Users/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var user = await _accountService.GetUserDetailsAsync(id);
+            if (user == null) return NotFound();
+            return Ok(new CleanArchitecture.Core.Wrappers.Response<CleanArchitecture.Core.DTOs.Clubs.MemberDetailsDto>(user));
+        }
+
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string q)
         {
@@ -45,6 +55,22 @@ namespace CleanArchitecture.WebApi.Controllers
         {
             var result = await _accountService.ChangeUserRoleAsync(id, request.Role, request.ClubId);
             return Ok(new { message = "Role updated successfully.", userId = result });
+        }
+
+        // PUT api/v1/Users/{id}/suspend
+        [HttpPut("{id}/suspend")]
+        [Authorize(Roles = "SKS_ADMIN")]
+        public async Task<IActionResult> Suspend(string id)
+        {
+            var result = await _accountService.SuspendUserAsync(id);
+            return Ok(new { message = "User suspended successfully.", userId = result });
+        }
+
+        // GET api/v1/Users/{id}/activities
+        [HttpGet("{id}/activities")]
+        public async Task<IActionResult> GetActivities(string id)
+        {
+            return Ok(await Mediator.Send(new GetRecentActivitiesQuery { UserId = id }));
         }
 
         [HttpGet("leaderboard")]

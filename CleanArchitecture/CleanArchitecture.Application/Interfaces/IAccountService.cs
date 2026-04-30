@@ -1,4 +1,5 @@
 using CleanArchitecture.Core.DTOs.Account;
+using CleanArchitecture.Core.DTOs.Clubs;
 using CleanArchitecture.Core.DTOs.Email;
 using CleanArchitecture.Core.DTOs.LeaderbordUserDto;
 using CleanArchitecture.Core.Wrappers;
@@ -19,8 +20,10 @@ namespace CleanArchitecture.Core.Interfaces
         Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds);
         Task<IEnumerable<UserAdminDto>> GetAllUsersAsync();
         Task<string> ChangeUserRoleAsync(string userId, string newRole, int? clubId);
+        Task<string> SuspendUserAsync(string userId);
         Task<List<LeaderboardUserDto>> GetLeaderboardAsync(int limit = 50);
         Task<List<LeaderboardUserDto>> GetClubLeaderboardAsync(int clubId, int limit = 10);
         Task<IEnumerable<UserAdminDto>> SearchUsersAsync(string query);
+        Task<MemberDetailsDto> GetUserDetailsAsync(string userId);
     }
 }

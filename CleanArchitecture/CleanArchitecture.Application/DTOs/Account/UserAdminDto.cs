@@ -7,5 +7,6 @@ namespace CleanArchitecture.Core.DTOs.Account
         public string Email { get; set; }
         public string StudentNumber { get; set; }
         public string Role { get; set; } // "STUDENT" | "CLUB_LEADER" | "SKS_ADMIN"
+        public string Status { get; set; } // "Active" | "Suspended"
     }
 }
