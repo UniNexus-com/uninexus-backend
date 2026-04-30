@@ -289,29 +289,49 @@ namespace CleanArchitecture.Infrastructure.Services
 
         public async Task<IEnumerable<UserAdminDto>> GetAllUsersAsync()
         {
-            var users = await _userManager.Users.ToListAsync();
-            var result = new List<UserAdminDto>();
+            // Fetch all users and their roles in a single query using a join to avoid N+1 problem.
+            // This is crucial for performance when using a remote database with latency.
+            var usersWithRoles = await (from user in _userManager.Users
+                                        join userRole in _context.UserRoles on user.Id equals userRole.UserId into ur
+                                        from userRole in ur.DefaultIfEmpty()
+                                        join role in _context.Roles on userRole.RoleId equals role.Id into r
+                                        from role in r.DefaultIfEmpty()
+                                        select new
+                                        {
+                                            user.Id,
+                                            user.FullName,
+                                            user.Email,
+                                            user.StudentNumber,
+                                            user.Status,
+                                            RoleName = role.Name
+                                        })
+                                        .ToListAsync();
 
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
+            // Group by User Id in memory to map to DTOs
+            var result = usersWithRoles
+                .GroupBy(u => u.Id)
+                .Select(g => {
+                    var first = g.First();
+                    var roles = g.Select(x => x.RoleName).Where(r => r != null).ToList();
 
-                string primaryRole = Roles.STUDENT.ToString();
-                if (roles.Contains(Roles.SKS_ADMIN.ToString()))
-                    primaryRole = Roles.SKS_ADMIN.ToString();
-                else if (roles.Contains(Roles.CLUB_LEADER.ToString()))
-                    primaryRole = Roles.CLUB_LEADER.ToString();
+                    // Determine the primary role for the admin list display
+                    string primaryRole = Roles.STUDENT.ToString();
+                    if (roles.Contains(Roles.SKS_ADMIN.ToString()))
+                        primaryRole = Roles.SKS_ADMIN.ToString();
+                    else if (roles.Contains(Roles.CLUB_LEADER.ToString()))
+                        primaryRole = Roles.CLUB_LEADER.ToString();
 
-                result.Add(new UserAdminDto
-                {
-                    Id            = user.Id,
-                    FullName      = user.FullName,
-                    Email         = user.Email,
-                    StudentNumber = user.StudentNumber,
-                    Role          = primaryRole,
-                    Status        = user.Status.ToString()
-                });
-            }
+                    return new UserAdminDto
+                    {
+                        Id            = first.Id,
+                        FullName      = first.FullName,
+                        Email         = first.Email,
+                        StudentNumber = first.StudentNumber,
+                        Role          = primaryRole,
+                        Status        = first.Status.ToString()
+                    };
+                })
+                .ToList();
 
             return result;
         }
