@@ -56,7 +56,7 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Announcements");
+                    b.ToTable("Announcements", (string)null);
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ApplicationUser", b =>
@@ -653,7 +653,7 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ClubCreationRequests");
+                    b.ToTable("ClubCreationRequests", (string)null);
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubJoinRequest", b =>

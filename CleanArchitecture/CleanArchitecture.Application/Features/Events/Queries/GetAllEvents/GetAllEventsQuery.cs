@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Core.Features.Events.Queries.GetAllEvents
 {
@@ -52,14 +51,11 @@ namespace CleanArchitecture.Core.Features.Events.Queries.GetAllEvents
                 }
             }
 
-            var allEventsQuery = _eventRepository.Entities;
-            
-            if (request.ClubId.HasValue)
-            {
-                allEventsQuery = allEventsQuery.Where(e => e.ClubId == request.ClubId.Value);
-            }
+            var allEvents = await _eventRepository.GetAllAsync();
 
-            var filteredEvents = await allEventsQuery.ToListAsync(cancellationToken);
+            var filteredEvents = request.ClubId.HasValue
+                ? allEvents.Where(e => e.ClubId == request.ClubId.Value).ToList()
+                : allEvents.ToList();
             var viewModels = _mapper.Map<IEnumerable<EventViewModel>>(filteredEvents);
             return new Response<IEnumerable<EventViewModel>>(viewModels);
         }
