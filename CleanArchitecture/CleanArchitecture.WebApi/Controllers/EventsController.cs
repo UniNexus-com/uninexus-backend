@@ -94,7 +94,20 @@ namespace CleanArchitecture.WebApi.Controllers
             var response = await Mediator.Send(query);
 
             var pdfBytes = TranscriptPdfGenerator.Generate(response.Data);
-            return File(pdfBytes, "application/pdf", $"Transcrit_{response.Data.StudentNumber}.pdf");
+            return File(pdfBytes, "application/pdf", $"Transcript_{response.Data.StudentNumber}.pdf");
+        }
+
+        [Authorize(Roles = "SKS_ADMIN")]
+        [HttpGet("transcript/{userId}")]
+        public async Task<IActionResult> DownloadTranscript(string userId)
+        {
+            var query = new GetTranscriptQuery { UserId = userId };
+            var response = await Mediator.Send(query);
+
+            if (response.Data == null) return NotFound("Student not found.");
+
+            var pdfBytes = TranscriptPdfGenerator.Generate(response.Data);
+            return File(pdfBytes, "application/pdf", $"Transcript_{response.Data.StudentNumber}.pdf");
         }
     }
 }
