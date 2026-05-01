@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using CleanArchitecture.Core.DTOs.Event;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
@@ -17,18 +18,18 @@ namespace CleanArchitecture.Core.Features.Events.Queries.GetAllEvents
 
     public class GetAllEventsQueryHandler : IRequestHandler<GetAllEventsQuery, Response<IEnumerable<EventViewModel>>>
     {
-        private readonly IGenericRepositoryAsync<Entities.Event> _eventRepository;
+        private readonly IApplicationDbContext _context;
         private readonly IClubRepositoryAsync _clubRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
         private readonly IMapper _mapper;
 
         public GetAllEventsQueryHandler(
-            IGenericRepositoryAsync<Entities.Event> eventRepository, 
+            IApplicationDbContext context, 
             IClubRepositoryAsync clubRepository,
             IMapper mapper, 
             IAuthenticatedUserService authenticatedUserService)
         {
-            _eventRepository = eventRepository;
+            _context = context;
             _clubRepository = clubRepository;
             _mapper = mapper;
             _authenticatedUserService = authenticatedUserService;
@@ -45,18 +46,19 @@ namespace CleanArchitecture.Core.Features.Events.Queries.GetAllEvents
                 if (!hasAuthority)
                 {
                     // If not club leader, they can only see events if they are an admin
-                    // (We'll assume the controller handles the SKS_ADMIN role check if needed, 
-                    // but for the "Event Map" specific logic, we restrict to the club)
-                    // Let's check if the user is an admin via a simple check or rely on the filter.
                 }
             }
 
-            var allEvents = await _eventRepository.GetAllAsync();
+            var query = _context.Events.Include(e => e.Club).AsQueryable();
 
-            var filteredEvents = request.ClubId.HasValue
-                ? allEvents.Where(e => e.ClubId == request.ClubId.Value).ToList()
-                : allEvents.ToList();
-            var viewModels = _mapper.Map<IEnumerable<EventViewModel>>(filteredEvents);
+            if (request.ClubId.HasValue)
+            {
+                query = query.Where(e => e.ClubId == request.ClubId.Value);
+            }
+
+            var allEvents = await query.ToListAsync(cancellationToken);
+
+            var viewModels = _mapper.Map<IEnumerable<EventViewModel>>(allEvents);
             return new Response<IEnumerable<EventViewModel>>(viewModels);
         }
     }

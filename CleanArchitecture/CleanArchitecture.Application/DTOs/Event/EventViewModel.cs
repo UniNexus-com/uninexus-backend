@@ -16,6 +16,7 @@ namespace CleanArchitecture.Core.DTOs.Event
         public int? Capacity { get; set; }
         public string Requirements { get; set; }
         public bool RequireApproval { get; set; }
-        public string Tags { get; set; }
+        public int? ClubId { get; set; }
+        public string ClubName { get; set; }
     }
 }
