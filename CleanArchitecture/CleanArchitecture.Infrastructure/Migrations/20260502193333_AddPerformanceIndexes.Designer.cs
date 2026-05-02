@@ -3,6 +3,7 @@ using System;
 using CleanArchitecture.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CleanArchitecture.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260502193333_AddPerformanceIndexes")]
+    partial class AddPerformanceIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,10 +62,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.HasIndex("ClubId");
 
                     b.HasIndex("Created");
-
-                    b.HasIndex("Message");
-
-                    b.HasIndex("Title");
 
                     b.HasIndex("ClubId", "Created");
 
@@ -220,7 +219,7 @@ namespace CleanArchitecture.Infrastructure.Migrations
                         .HasDefaultValue("AVAILABLE")
                         .HasColumnName("status");
 
-                    b.Property<decimal>("Value")
+                    b.Property<decimal?>("Value")
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("value");
 
@@ -354,8 +353,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("Title");
-
                     b.HasIndex("Status", "Created");
 
                     b.ToTable("budget_requests", (string)null);
@@ -486,8 +483,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Category");
-
-                    b.HasIndex("Name");
 
                     b.HasIndex("Status");
 
@@ -929,8 +924,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.HasIndex("IsActive");
 
                     b.HasIndex("StartDate");
-
-                    b.HasIndex("Title");
 
                     b.ToTable("events", (string)null);
                 });
