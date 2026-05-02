@@ -211,6 +211,58 @@ namespace CleanArchitecture.Infrastructure.Repository
 
             return details;
         }
+        public async Task<ClubHistoryDto> GetClubHistoryAsync(int clubId)
+        {
+            var members = await _userClubs
+                .Where(uc => uc.ClubId == clubId)
+                .OrderBy(uc => uc.JoinDate)
+                .Select(uc => new { uc.JoinDate })
+                .ToListAsync();
+
+            var events = await _dbContext.Events
+                .Where(e => e.ClubId == clubId && e.IsActive)
+                .OrderBy(e => e.Created)
+                .Select(e => new { e.Created })
+                .ToListAsync();
+
+            var budgets = await _dbContext.BudgetRequests
+                .Where(b => b.ClubId == clubId && b.Status == "APPROVED")
+                .OrderBy(b => b.Created)
+                .Select(b => new { b.Created, b.Amount })
+                .ToListAsync();
+
+            var history = new ClubHistoryDto();
+            
+            var allDates = members.Select(m => m.JoinDate.Date)
+                .Union(events.Select(e => e.Created.Date))
+                .Union(budgets.Select(b => b.Created.Date))
+                .OrderBy(d => d)
+                .Distinct()
+                .ToList();
+
+            if (!allDates.Any()) return history;
+
+            int currentMembers = 0;
+            int currentEvents = 0;
+            decimal currentBudget = 0;
+
+            foreach (var date in allDates)
+            {
+                currentMembers += members.Count(m => m.JoinDate.Date == date);
+                currentEvents += events.Count(e => e.Created.Date == date);
+                currentBudget += budgets.Where(b => b.Created.Date == date).Sum(b => b.Amount);
+
+                history.Points.Add(new HistoryPointDto
+                {
+                    Date = DateTime.SpecifyKind(date, DateTimeKind.Utc),
+                    MemberCount = currentMembers,
+                    EventCount = currentEvents,
+                    TotalBudgetUsed = currentBudget
+                });
+            }
+
+            return history;
+        }
         public async Task<ClubStatsDto> GetClubStatsAsync(int clubId)
         {
             var now = DateTime.UtcNow;
@@ -226,11 +278,13 @@ namespace CleanArchitecture.Infrastructure.Repository
                 TotalBudget = club.TotalBudget ?? 0
             };
 
-            // Calculate Growth Rate (Last 30 days)
-            var thirtyDaysAgo = now.AddDays(-30);
-            var newMembersCount = await _userClubs.CountAsync(uc => uc.ClubId == clubId && uc.JoinDate >= thirtyDaysAgo);
-            var totalMembersBefore = stats.TotalMembers - newMembersCount;
-            stats.GrowthRate = totalMembersBefore > 0 ? (double)newMembersCount / totalMembersBefore * 100 : 0;
+            // Calculate Growth Rate (Current Month Growth)
+            // Each month's value includes previous dates (cumulative), so the difference 
+            // between 'now' and 'end of last month' gives this month's growth.
+            var thisMonthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var newMembersThisMonth = await _userClubs.CountAsync(uc => uc.ClubId == clubId && uc.JoinDate >= thisMonthStart);
+            
+            stats.GrowthRate = (double)newMembersThisMonth;
 
             // Activity Logs
             var activityLogs = new List<ActivityPointDto>();
