@@ -14,6 +14,7 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset
     public class BorrowAssetCommand : IRequest<Response<int>>
     {
         public int AssetId { get; set; }
+        public string UserId { get; set; }
     }
 
     public class BorrowAssetCommandHandler : IRequestHandler<BorrowAssetCommand, Response<int>>
@@ -29,7 +30,7 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset
 
         public async Task<Response<int>> Handle(BorrowAssetCommand request, CancellationToken cancellationToken)
         {
-            var userId = _authenticatedUser.UserId;
+            var userId = request.UserId ?? _authenticatedUser.UserId;
             if (string.IsNullOrEmpty(userId))
                 throw new ApiException("You must be logged in to borrow items.");
 
@@ -72,7 +73,7 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            return new Response<int>(loan.Id, message: $"'{asset.Name}' borrowed successfully. Due date: {loan.DueDate:dd MMM yyyy}");
+            return new Response<int>(loan.Id, message: $"'{asset.Name}' borrowed to {userId}. Due date: {loan.DueDate:dd MMM yyyy}");
         }
     }
 }

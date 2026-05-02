@@ -1,7 +1,6 @@
-using AutoMapper;
 using CleanArchitecture.Core.DTOs.Inventory;
 using CleanArchitecture.Core.Entities;
-using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Features.Inventory.Queries.GetInventory;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
 using System.Collections.Generic;
@@ -11,30 +10,42 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Features.Inventory.Queries.GetInventory
 {
-    public class GetInventoryQuery : IRequest<Response<IEnumerable<AssetViewModel>>>
+    public class GetInventoryQuery : IRequest<PagedResponse<AssetViewModel>>
     {
         public int? ClubId { get; set; }
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public string SearchValue { get; set; }
+        public string SortColumn { get; set; } = "Name";
+        public string SortDirection { get; set; } = "asc";
+        public List<string> CategoryFilters { get; set; }
+        public List<string> ConditionFilters { get; set; }
+        public List<string> StatusFilters { get; set; }
     }
 
-    public class GetInventoryQueryHandler : IRequestHandler<GetInventoryQuery, Response<IEnumerable<AssetViewModel>>>
+    public class GetInventoryQueryHandler : IRequestHandler<GetInventoryQuery, PagedResponse<AssetViewModel>>
     {
-        private readonly IGenericRepositoryAsync<Asset> _assetRepository;
-        private readonly IMapper _mapper;
+        private readonly IAssetRepositoryAsync _assetRepository;
 
-        public GetInventoryQueryHandler(IGenericRepositoryAsync<Asset> assetRepository, IMapper mapper)
+        public GetInventoryQueryHandler(IAssetRepositoryAsync assetRepository)
         {
             _assetRepository = assetRepository;
-            _mapper = mapper;
         }
 
-        public async Task<Response<IEnumerable<AssetViewModel>>> Handle(GetInventoryQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResponse<AssetViewModel>> Handle(GetInventoryQuery request, CancellationToken cancellationToken)
         {
-            var allAssets = await _assetRepository.GetAllAsync();
-            var filtered = request.ClubId.HasValue
-                ? allAssets.Where(a => a.ClubId == request.ClubId)
-                : allAssets;
-            var viewModels = _mapper.Map<IEnumerable<AssetViewModel>>(filtered);
-            return new Response<IEnumerable<AssetViewModel>>(viewModels);
+            var (data, totalCount) = await _assetRepository.GetAssetsPagedAsync(
+                request.ClubId,
+                request.PageNumber,
+                request.PageSize,
+                request.SearchValue,
+                request.SortColumn,
+                request.SortDirection,
+                request.CategoryFilters,
+                request.ConditionFilters,
+                request.StatusFilters);
+
+            return new PagedResponse<AssetViewModel>(data.ToList(), request.PageNumber, request.PageSize, totalCount);
         }
     }
 }
