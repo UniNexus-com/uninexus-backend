@@ -11,6 +11,8 @@ namespace CleanArchitecture.Core.DTOs.Clubs
         public int? RoleId { get; set; }
         public string RoleColor { get; set; }
         public bool IsPresident { get; set; }
+        public string StudentNumber { get; set; }
+        public string Status { get; set; }
         public DateTime Joined { get; set; }
     }
 }

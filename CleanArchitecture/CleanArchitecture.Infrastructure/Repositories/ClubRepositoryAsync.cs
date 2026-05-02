@@ -43,13 +43,23 @@ namespace CleanArchitecture.Infrastructure.Repository
                             RoleId = uc.ClubRoleId,
                             RoleColor = r != null ? (r.Color ?? "#3b82f6") : "#94a3b8",
                             IsPresident = r != null && r.Name == "President",
+                            StudentNumber = u.StudentNumber,
+                            Status = u.Status.ToString(),
                             Joined = uc.JoinDate
                         };
 
             return await query.ToListAsync();
         }
 
-        public async Task<(IReadOnlyList<ClubMemberDto> Data, int TotalCount)> GetClubMembersPagedAsync(int clubId, int pageNumber, int pageSize, string searchValue)
+        public async Task<(IReadOnlyList<ClubMemberDto> Data, int TotalCount)> GetClubMembersPagedAsync(
+            int clubId, 
+            int pageNumber, 
+            int pageSize, 
+            string searchValue,
+            string sortColumn,
+            string sortDirection,
+            List<string> roleFilters,
+            List<string> statusFilters)
         {
             var query = from uc in _userClubs
                         join u in _users on uc.UserId equals u.Id
@@ -58,14 +68,58 @@ namespace CleanArchitecture.Infrastructure.Repository
                         where uc.ClubId == clubId
                         select new { uc, u, r };
 
+            // Search
             if (!string.IsNullOrEmpty(searchValue))
             {
                 searchValue = searchValue.ToLower();
-                query = query.Where(x => x.u.FullName.ToLower().Contains(searchValue) || x.u.Email.ToLower().Contains(searchValue));
+                query = query.Where(x => x.u.FullName.ToLower().Contains(searchValue) || x.u.Email.ToLower().Contains(searchValue) || x.u.StudentNumber.ToLower().Contains(searchValue));
+            }
+
+            // Role Filters
+            if (roleFilters != null && roleFilters.Any())
+            {
+                query = query.Where(x => x.r != null && roleFilters.Contains(x.r.Name));
+            }
+
+            // Status Filters
+            if (statusFilters != null && statusFilters.Any())
+            {
+                query = query.Where(x => statusFilters.Contains(x.u.Status.ToString()));
+            }
+
+            // Sorting
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                bool isAsc = sortDirection?.ToLower() == "asc";
+                switch (sortColumn.ToLower())
+                {
+                    case "name":
+                    case "fullname":
+                        query = isAsc ? query.OrderBy(x => x.u.FullName) : query.OrderByDescending(x => x.u.FullName);
+                        break;
+                    case "role":
+                        query = isAsc ? query.OrderBy(x => x.r != null ? x.r.Name : "Member") : query.OrderByDescending(x => x.r != null ? x.r.Name : "Member");
+                        break;
+                    case "studentnumber":
+                        query = isAsc ? query.OrderBy(x => x.u.StudentNumber) : query.OrderByDescending(x => x.u.StudentNumber);
+                        break;
+                    case "status":
+                        query = isAsc ? query.OrderBy(x => x.u.Status.ToString()) : query.OrderByDescending(x => x.u.Status.ToString());
+                        break;
+                    case "joined":
+                        query = isAsc ? query.OrderBy(x => x.uc.JoinDate) : query.OrderByDescending(x => x.uc.JoinDate);
+                        break;
+                    default:
+                        query = query.OrderByDescending(x => x.uc.JoinDate);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(x => x.uc.JoinDate);
             }
 
             var finalQuery = query
-                        .OrderByDescending(x => x.uc.JoinDate)
                         .Select(x => new ClubMemberDto
                         {
                             Id = x.u.Id,
@@ -75,6 +129,8 @@ namespace CleanArchitecture.Infrastructure.Repository
                             RoleId = x.uc.ClubRoleId,
                             RoleColor = x.r != null ? (x.r.Color ?? "#3b82f6") : "#94a3b8",
                             IsPresident = x.r != null && x.r.Name == "President",
+                            StudentNumber = x.u.StudentNumber,
+                            Status = x.u.Status.ToString(),
                             Joined = x.uc.JoinDate
                         });
 

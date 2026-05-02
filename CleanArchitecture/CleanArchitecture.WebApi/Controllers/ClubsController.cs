@@ -81,9 +81,10 @@ namespace CleanArchitecture.WebApi.Controllers
         }
 
         [HttpGet("{id}/members")]
-        public async Task<IActionResult> GetMembers(int id, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchValue = null)
+        public async Task<IActionResult> GetMembers(int id, [FromQuery] GetClubMembersQuery query)
         {
-            return Ok(await Mediator.Send(new GetClubMembersQuery { ClubId = id, PageNumber = pageNumber, PageSize = pageSize, SearchValue = searchValue }));
+            query.ClubId = id;
+            return Ok(await Mediator.Send(query));
         }
 
         [HttpGet("{clubId}/members/{userId}")]

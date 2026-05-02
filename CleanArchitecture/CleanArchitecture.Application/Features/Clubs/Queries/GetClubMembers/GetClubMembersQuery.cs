@@ -17,6 +17,10 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public string SearchValue { get; set; }
+        public string SortColumn { get; set; }
+        public string SortDirection { get; set; }
+        public List<string> RoleFilters { get; set; }
+        public List<string> StatusFilters { get; set; }
     }
 
     public class GetClubMembersQueryHandler : IRequestHandler<GetClubMembersQuery, PagedResponse<ClubMemberDto>>
@@ -30,8 +34,17 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
 
         public async Task<PagedResponse<ClubMemberDto>> Handle(GetClubMembersQuery request, CancellationToken cancellationToken)
         {
-            var (members, totalCount) = await _clubRepository.GetClubMembersPagedAsync(request.ClubId, request.PageNumber, request.PageSize, request.SearchValue);
-            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Search: {request.SearchValue}, Page: {request.PageNumber}, Count: {members.Count}, Total: {totalCount}");
+            var (members, totalCount) = await _clubRepository.GetClubMembersPagedAsync(
+                request.ClubId, 
+                request.PageNumber, 
+                request.PageSize, 
+                request.SearchValue,
+                request.SortColumn,
+                request.SortDirection,
+                request.RoleFilters,
+                request.StatusFilters);
+            
+            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Search: {request.SearchValue}, Sort: {request.SortColumn} {request.SortDirection}, Total: {totalCount}");
             return new PagedResponse<ClubMemberDto>(members.ToList(), request.PageNumber, request.PageSize, totalCount);
         }
     }
