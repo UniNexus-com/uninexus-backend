@@ -44,7 +44,7 @@ namespace CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers
                 request.RoleFilters,
                 request.StatusFilters);
             
-            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Search: {request.SearchValue}, Sort: {request.SortColumn} {request.SortDirection}, Total: {totalCount}");
+            System.Console.WriteLine($"[DIAGNOSTIC] GetClubMembersQueryHandler - ClubId: {request.ClubId}, Search: '{request.SearchValue}', Sort: {request.SortColumn} {request.SortDirection}, Roles: {string.Join(",", request.RoleFilters ?? new List<string>())}, Statuses: {string.Join(",", request.StatusFilters ?? new List<string>())}");
             return new PagedResponse<ClubMemberDto>(members.ToList(), request.PageNumber, request.PageSize, totalCount);
         }
     }

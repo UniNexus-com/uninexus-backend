@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.DTOs.Clubs;
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Enums;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -84,10 +85,19 @@ namespace CleanArchitecture.Infrastructure.Repository
             // Status Filters
             if (statusFilters != null && statusFilters.Any())
             {
-                query = query.Where(x => statusFilters.Contains(x.u.Status.ToString()));
+                var statusEnums = statusFilters
+                    .Select(s => System.Enum.TryParse<AccountStatus>(s, true, out var result) ? (AccountStatus?)result : null)
+                    .Where(s => s.HasValue)
+                    .Select(s => s.Value)
+                    .ToList();
+
+                if (statusEnums.Any())
+                {
+                    query = query.Where(x => statusEnums.Contains(x.u.Status));
+                }
             }
 
-            // Sorting
+            // Sorting (before projection to avoid ToString translation issues)
             if (!string.IsNullOrEmpty(sortColumn))
             {
                 bool isAsc = sortDirection?.ToLower() == "asc";
@@ -104,7 +114,7 @@ namespace CleanArchitecture.Infrastructure.Repository
                         query = isAsc ? query.OrderBy(x => x.u.StudentNumber) : query.OrderByDescending(x => x.u.StudentNumber);
                         break;
                     case "status":
-                        query = isAsc ? query.OrderBy(x => x.u.Status.ToString()) : query.OrderByDescending(x => x.u.Status.ToString());
+                        query = isAsc ? query.OrderBy(x => x.u.Status) : query.OrderByDescending(x => x.u.Status);
                         break;
                     case "joined":
                         query = isAsc ? query.OrderBy(x => x.uc.JoinDate) : query.OrderByDescending(x => x.uc.JoinDate);
@@ -130,7 +140,7 @@ namespace CleanArchitecture.Infrastructure.Repository
                             RoleColor = x.r != null ? (x.r.Color ?? "#3b82f6") : "#94a3b8",
                             IsPresident = x.r != null && x.r.Name == "President",
                             StudentNumber = x.u.StudentNumber,
-                            Status = x.u.Status.ToString(),
+                            Status = x.u.Status == AccountStatus.Active ? "Active" : "Suspended",
                             Joined = x.uc.JoinDate
                         });
 
