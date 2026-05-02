@@ -4,6 +4,7 @@ using CleanArchitecture.Core.Features.Users.Queries.GetRecentActivities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CleanArchitecture.WebApi.Controllers
 {
@@ -26,10 +27,10 @@ namespace CleanArchitecture.WebApi.Controllers
 
         // GET api/v1/Users
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] GetPagedUsersRequest request, CancellationToken cancellationToken)
         {
-            var users = await _accountService.GetAllUsersAsync();
-            return Ok(users);
+            var result = await _accountService.GetPagedUsersAsync(request, cancellationToken);
+            return Ok(result);
         }
 
         // GET api/v1/Users/{id}
