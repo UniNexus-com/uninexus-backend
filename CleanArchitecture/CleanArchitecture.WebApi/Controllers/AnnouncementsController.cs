@@ -28,6 +28,12 @@ namespace CleanArchitecture.WebApi.Controllers
             return Ok(result.Data);
         }
 
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged([FromQuery] GetPagedAnnouncementsQuery query)
+        {
+            return Ok(await Mediator.Send(query));
+        }
+
         [Authorize(Roles = "SKS_ADMIN")]
         [HttpPost("broadcast")]
         public async Task<IActionResult> BroadCastAnnouncement([FromBody] AnnouncementRequest request)
