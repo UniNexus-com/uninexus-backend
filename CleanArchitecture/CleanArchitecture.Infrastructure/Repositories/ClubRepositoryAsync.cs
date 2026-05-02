@@ -259,7 +259,7 @@ namespace CleanArchitecture.Infrastructure.Repository
                 Email = user.Email,
                 StudentNumber = user.StudentNumber,
                 Role = userClub.Role?.Name ?? "Member",
-                RoleColor = userClub.Role?.Name == "President" ? "#ef4444" : "#3b82f6",
+                RoleColor = userClub.Role?.Color ?? (userClub.Role?.Name == "President" ? "#F5A623" : "#3b82f6"),
                 IsPresident = userClub.Role?.Name == "President",
                 Joined = userClub.JoinDate,
                 Phone = user.PhoneNumber,
