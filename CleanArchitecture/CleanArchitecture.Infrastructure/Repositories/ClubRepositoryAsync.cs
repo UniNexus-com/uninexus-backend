@@ -171,7 +171,7 @@ namespace CleanArchitecture.Infrastructure.Repository
             return await query.ToListAsync();
         }
 
-        public async Task<IReadOnlyList<Club>> GetManagedClubsAsync(string userId)
+        public async Task<IReadOnlyList<ManagedClubDto>> GetManagedClubsAsync(string userId)
         {
             return await _userClubs
                 .Include(uc => uc.Club)
@@ -180,7 +180,18 @@ namespace CleanArchitecture.Infrastructure.Repository
                     && uc.IsActive
                     && uc.Role != null
                     && uc.Role.Name != "Active Member")
-                .Select(uc => uc.Club)
+                .Select(uc => new ManagedClubDto
+                {
+                    Id = uc.Club.Id,
+                    Name = uc.Club.Name,
+                    Description = uc.Club.Description,
+                    Category = uc.Club.Category,
+                    LogoUrl = uc.Club.LogoUrl,
+                    Status = uc.Club.Status,
+                    TotalBudget = uc.Club.TotalBudget,
+                    Created = uc.Club.Created,
+                    UserRole = uc.Role.Name
+                })
                 .ToListAsync();
         }
 
