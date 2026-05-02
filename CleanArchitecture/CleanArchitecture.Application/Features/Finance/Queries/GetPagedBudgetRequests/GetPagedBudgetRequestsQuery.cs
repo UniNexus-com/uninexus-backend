@@ -19,17 +19,17 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
         public string Status { get; set; } = "PENDING";
         public List<int> ClubIds { get; set; }
         public List<string> Categories { get; set; }
+        public string SortBy { get; set; } = "Created";
+        public bool IsDescending { get; set; } = true;
     }
 
     public class GetPagedBudgetRequestsQueryHandler : IRequestHandler<GetPagedBudgetRequestsQuery, PagedResponse<BudgetRequestViewModel>>
     {
         private readonly IApplicationDbContext _context;
-        private readonly IAccountService _accountService;
 
-        public GetPagedBudgetRequestsQueryHandler(IApplicationDbContext context, IAccountService accountService)
+        public GetPagedBudgetRequestsQueryHandler(IApplicationDbContext context)
         {
             _context = context;
-            _accountService = accountService;
         }
 
         public async Task<PagedResponse<BudgetRequestViewModel>> Handle(GetPagedBudgetRequestsQuery request, CancellationToken cancellationToken)
@@ -59,51 +59,42 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
 
             var totalCount = await query.CountAsync(cancellationToken);
 
-            var pagedData = await query
-                .OrderByDescending(r => r.Created)
+            // Dynamic Sorting
+            query = request.SortBy?.ToLower() switch
+            {
+                "title"    => request.IsDescending ? query.OrderByDescending(r => r.Title) : query.OrderBy(r => r.Title),
+                "clubname" => request.IsDescending ? query.OrderByDescending(r => r.Club.Name) : query.OrderBy(r => r.Club.Name),
+                "category" => request.IsDescending ? query.OrderByDescending(r => r.Category) : query.OrderBy(r => r.Category),
+                "amount"   => request.IsDescending ? query.OrderByDescending(r => r.Amount) : query.OrderBy(r => r.Amount),
+                _          => request.IsDescending ? query.OrderByDescending(r => r.Created) : query.OrderBy(r => r.Created)
+            };
+
+            // Optimization: Single query projection to fetch everything (including President name) in ONE roundtrip
+            var viewModels = await query
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
+                .Select(r => new BudgetRequestViewModel
+                {
+                    Id = r.Id,
+                    Title = r.Title,
+                    Category = r.Category,
+                    Description = r.Description,
+                    Amount = r.Amount,
+                    Status = r.Status,
+                    Created = r.Created,
+                    CreatedBy = r.CreatedBy,
+                    ClubId = r.ClubId,
+                    ClubName = r.Club != null ? r.Club.Name : $"Club #{r.ClubId}",
+                    // Subquery for President name is translated to a join/subquery by EF Core
+                    CreatedByName = _context.UserClubs
+                        .Where(uc => uc.ClubId == r.ClubId && uc.Role.Name == "President" && uc.IsActive)
+                        .Join(_context.Set<ApplicationUser>(), 
+                              uc => uc.UserId, 
+                              u => u.Id, 
+                              (uc, u) => u.FullName)
+                        .FirstOrDefault() ?? "Unknown Leader"
+                })
                 .ToListAsync(cancellationToken);
-
-            // Fetch President Role ID
-            var presidentRole = await _context.ClubRoles
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Name == "President" && r.IsSystemRole, cancellationToken);
-            var presidentRoleId = presidentRole?.Id ?? 1;
-
-            // Batch fetch presidents for the clubs in paged result
-            var clubIds = pagedData.Select(r => r.ClubId).Where(id => id.HasValue).Select(id => id.Value).Distinct().ToList();
-            
-            var presidents = await _context.UserClubs
-                .Where(uc => clubIds.Contains(uc.ClubId) && uc.ClubRoleId == presidentRoleId && uc.IsActive)
-                .ToListAsync(cancellationToken);
-
-            var presidentUserIds = presidents.Select(p => p.UserId).Distinct().ToList();
-            var presidentNames = presidentUserIds.Any() 
-                ? await _accountService.GetUserNamesAsync(presidentUserIds)
-                : new Dictionary<string, string>();
-
-            var clubPresidentDict = presidents
-                .GroupBy(p => p.ClubId)
-                .ToDictionary(
-                    g => g.Key, 
-                    g => presidentNames.TryGetValue(g.First().UserId, out var name) ? name : "Unknown Leader"
-                );
-
-            var viewModels = pagedData.Select(r => new BudgetRequestViewModel
-            {
-                Id = r.Id,
-                Title = r.Title,
-                Category = r.Category,
-                Description = r.Description,
-                Amount = r.Amount,
-                Status = r.Status,
-                Created = r.Created,
-                CreatedBy = r.CreatedBy,
-                ClubId = r.ClubId,
-                ClubName = r.Club?.Name ?? $"Club #{r.ClubId}",
-                CreatedByName = r.ClubId.HasValue && clubPresidentDict.TryGetValue(r.ClubId.Value, out var leader) ? leader : "Unknown Leader"
-            }).ToList();
 
             return new PagedResponse<BudgetRequestViewModel>(viewModels, request.PageNumber, request.PageSize, totalCount);
         }

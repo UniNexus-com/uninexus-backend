@@ -9,7 +9,9 @@ namespace CleanArchitecture.Core.Mappings
     {
         public EventProfile()
         {
-            CreateMap<Event, EventViewModel>();
+            CreateMap<Event, EventViewModel>()
+                .ForMember(dest => dest.ClubId, opt => opt.MapFrom(src => src.ClubId))
+                .ForMember(dest => dest.ClubName, opt => opt.MapFrom(src => src.Club != null ? src.Club.Name : null));
             CreateMap<CreateEventCommand, Event>();
         }
     }

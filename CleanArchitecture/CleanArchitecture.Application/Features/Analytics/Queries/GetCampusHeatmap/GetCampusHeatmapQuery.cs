@@ -86,14 +86,13 @@ namespace CleanArchitecture.Core.Features.Analytics.Queries.GetCampusHeatmap
                 .Select(g => new LocationStat { Location = g.Key, Count = g.Count() })
                 .ToList();
 
-            // Monthly distribution (last 6 months)
+            // Monthly distribution
             var monthlyDistribution = events
                 .GroupBy(e => new { e.StartDate.Year, e.StartDate.Month })
                 .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
-                .TakeLast(6)
                 .Select(g => new MonthStat
                 {
-                    Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM yy"),
+                    Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMMM", System.Globalization.CultureInfo.InvariantCulture),
                     Count = g.Count()
                 })
                 .ToList();
