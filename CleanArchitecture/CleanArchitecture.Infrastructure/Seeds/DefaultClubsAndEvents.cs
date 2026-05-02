@@ -38,7 +38,9 @@ namespace CleanArchitecture.Infrastructure.Seeds
                 new ClubRole { Name = "Vice President", IsSystemRole = true, Created = now, CreatedBy = "seed" },
                 new ClubRole { Name = "Treasurer", IsSystemRole = true, Created = now, CreatedBy = "seed" },
                 new ClubRole { Name = "Secretary", IsSystemRole = true, Created = now, CreatedBy = "seed" },
-                new ClubRole { Name = "Active Member", IsSystemRole = true, Created = now, CreatedBy = "seed" }
+                new ClubRole { Name = "Active Member", IsSystemRole = true, Created = now, CreatedBy = "seed" },
+                new ClubRole { Name = "Inventory Manager", IsSystemRole = true, Created = now, CreatedBy = "seed" },
+                new ClubRole { Name = "Communications Officer", IsSystemRole = true, Created = now, CreatedBy = "seed" }
             };
 
             await context.ClubRoles.AddRangeAsync(systemRoles);
@@ -62,6 +64,12 @@ namespace CleanArchitecture.Infrastructure.Seeds
             // Secretary gets Reports and Events
             rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[3].Id, PrivilegeId = privileges[1].Id });
             rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[3].Id, PrivilegeId = privileges[4].Id });
+
+            // Inventory Manager gets Manage Assets
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[5].Id, PrivilegeId = privileges[3].Id });
+
+            // Communications Officer gets Send Announcements
+            rolePrivileges.Add(new ClubRolePrivilege { ClubRoleId = systemRoles[6].Id, PrivilegeId = privileges[6].Id });
 
             await context.AddRangeAsync(rolePrivileges);
             await context.SaveChangesAsync();
