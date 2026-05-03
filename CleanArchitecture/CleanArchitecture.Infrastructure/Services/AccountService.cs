@@ -572,6 +572,94 @@ namespace CleanArchitecture.Infrastructure.Services
             };
         }
 
+        public async Task<PagedResponse<UserAdminDto>> GetPagedUsersAsync(GetPagedUsersRequest request, System.Threading.CancellationToken cancellationToken = default)
+        {
+            var query = from user in _userManager.Users
+                        join userRole in _context.UserRoles on user.Id equals userRole.UserId into ur
+                        from userRole in ur.DefaultIfEmpty()
+                        join role in _context.Roles on userRole.RoleId equals role.Id into r
+                        from role in r.DefaultIfEmpty()
+                        select new
+                        {
+                            user.Id,
+                            user.FullName,
+                            user.Email,
+                            user.StudentNumber,
+                            user.Status,
+                            RoleName = role.Name
+                        };
+
+            // Apply search
+            if (!string.IsNullOrEmpty(request.SearchValue))
+            {
+                var search = $"%{request.SearchValue}%";
+                query = query.Where(u =>
+                    EF.Functions.ILike(u.FullName, search) ||
+                    EF.Functions.ILike(u.Email, search) ||
+                    (u.StudentNumber != null && EF.Functions.ILike(u.StudentNumber, search)));
+            }
+
+            // Apply role filter
+            if (request.Roles != null && request.Roles.Any())
+                query = query.Where(u => request.Roles.Contains(u.RoleName));
+
+            // Get distinct user ids for counting (before grouping, to count unique users)
+            var distinctIds = query.Select(u => u.Id).Distinct();
+            var totalCount = await distinctIds.CountAsync(cancellationToken);
+
+            // For sorting and pagination, we need to group in memory since EF can't group and paginate cleanly here
+            var rawData = await query.ToListAsync(cancellationToken);
+
+            var grouped = rawData
+                .GroupBy(u => u.Id)
+                .Select(g =>
+                {
+                    var first = g.First();
+                    var roles = g.Select(x => x.RoleName).Where(r => r != null).ToList();
+
+                    string primaryRole = Roles.STUDENT.ToString();
+                    if (roles.Contains(Roles.SKS_ADMIN.ToString()))
+                        primaryRole = Roles.SKS_ADMIN.ToString();
+                    else if (roles.Contains(Roles.CLUB_LEADER.ToString()))
+                        primaryRole = Roles.CLUB_LEADER.ToString();
+
+                    return new UserAdminDto
+                    {
+                        Id            = first.Id,
+                        FullName      = first.FullName,
+                        Email         = first.Email,
+                        StudentNumber = first.StudentNumber,
+                        Role          = primaryRole,
+                        Status        = first.Status.ToString()
+                    };
+                })
+                .AsQueryable();
+
+            // Apply status filter (after grouping since Status is per-user)
+            if (request.Statuses != null && request.Statuses.Any())
+                grouped = grouped.Where(u => request.Statuses.Contains(u.Status));
+
+            // Re-count after status filter
+            totalCount = grouped.Count();
+
+            // Apply sort
+            grouped = request.SortBy?.ToLower() switch
+            {
+                "email"         => request.IsDescending ? grouped.OrderByDescending(u => u.Email) : grouped.OrderBy(u => u.Email),
+                "studentnumber" => request.IsDescending ? grouped.OrderByDescending(u => u.StudentNumber) : grouped.OrderBy(u => u.StudentNumber),
+                "role"          => request.IsDescending ? grouped.OrderByDescending(u => u.Role) : grouped.OrderBy(u => u.Role),
+                "status"        => request.IsDescending ? grouped.OrderByDescending(u => u.Status) : grouped.OrderBy(u => u.Status),
+                _               => request.IsDescending ? grouped.OrderByDescending(u => u.FullName) : grouped.OrderBy(u => u.FullName)
+            };
+
+            var data = grouped
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+
+            return new PagedResponse<UserAdminDto>(data, request.PageNumber, request.PageSize, totalCount);
+        }
+
         private async Task<string> BuildConfirmEmailUri(ApplicationUser user, string origin)
         {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

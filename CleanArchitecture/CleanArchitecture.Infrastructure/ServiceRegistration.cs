@@ -3,6 +3,7 @@ using CleanArchitecture.Core.Wrappers;
 using CleanArchitecture.Core.Settings;
 using CleanArchitecture.Infrastructure.Contexts;
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Features.Inventory.Queries.GetInventory;
 using CleanArchitecture.Infrastructure.Repository;
 using CleanArchitecture.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -120,6 +121,7 @@ namespace CleanArchitecture.Infrastructure
             #region Repositories
             services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
             services.AddTransient<IClubRepositoryAsync, ClubRepositoryAsync>();
+            services.AddTransient<IAssetRepositoryAsync, AssetRepositoryAsync>();
             #endregion
         }
     }

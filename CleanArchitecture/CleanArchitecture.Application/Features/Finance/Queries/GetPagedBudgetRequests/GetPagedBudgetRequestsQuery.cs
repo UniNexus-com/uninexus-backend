@@ -50,11 +50,11 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
 
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
-                var search = request.SearchValue.ToLower();
-                query = query.Where(r => 
-                    r.Title.ToLower().Contains(search) || 
-                    (r.Club != null && r.Club.Name.ToLower().Contains(search)) ||
-                    r.Description.ToLower().Contains(search));
+                var search = $"%{request.SearchValue}%";
+                query = query.Where(r =>
+                    EF.Functions.ILike(r.Title, search) ||
+                    (r.Club != null && EF.Functions.ILike(r.Club.Name, search)) ||
+                    EF.Functions.ILike(r.Description, search));
             }
 
             var totalCount = await query.CountAsync(cancellationToken);

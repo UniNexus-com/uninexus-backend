@@ -7,6 +7,7 @@ using CleanArchitecture.Core.Features.Clubs.Commands.UpdateClubStatus;
 using CleanArchitecture.Core.Features.Clubs.Commands.DeclineJoinRequest;
 using CleanArchitecture.Core.Features.Clubs.Commands.UpdateClubBudget;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetAllClubs;
+using CleanArchitecture.Core.Features.Clubs.Queries.GetPagedClubs;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubJoinRequests;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetMemberDetails;
@@ -72,6 +73,12 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> GetAll()
         {
             return Ok(await Mediator.Send(new GetAllClubsQuery()));
+        }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged([FromQuery] GetPagedClubsQuery query)
+        {
+            return Ok(await Mediator.Send(query));
         }
 
         [HttpGet("privileges")]

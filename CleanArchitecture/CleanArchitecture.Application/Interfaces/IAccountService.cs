@@ -5,6 +5,7 @@ using CleanArchitecture.Core.DTOs.LeaderbordUserDto;
 using CleanArchitecture.Core.Wrappers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CleanArchitecture.Core.Interfaces
 {
@@ -19,6 +20,7 @@ namespace CleanArchitecture.Core.Interfaces
         Task<AuthenticationResponse> RefreshTokenAsync(string token, string ipAddress);
         Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds);
         Task<IEnumerable<UserAdminDto>> GetAllUsersAsync();
+        Task<PagedResponse<UserAdminDto>> GetPagedUsersAsync(GetPagedUsersRequest request, CancellationToken cancellationToken = default);
         Task<string> ChangeUserRoleAsync(string userId, string newRole, int? clubId);
         Task<string> SuspendUserAsync(string userId);
         Task<string> ActivateUserAsync(string userId);

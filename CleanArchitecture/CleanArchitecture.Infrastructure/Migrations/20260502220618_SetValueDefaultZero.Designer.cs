@@ -3,6 +3,7 @@ using System;
 using CleanArchitecture.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CleanArchitecture.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260502220618_SetValueDefaultZero")]
+    partial class SetValueDefaultZero
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -680,32 +683,9 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("text");
 
-                    b.Property<int>("SupporterCount")
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
                     b.HasKey("Id");
 
                     b.ToTable("ClubCreationRequests");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubCreationRequestSupporter", b =>
-                {
-                    b.Property<int>("ClubCreationRequestId")
-                        .HasColumnType("integer")
-                        .HasColumnName("club_creation_request_id");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.Property<DateTime>("SupportedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("supported_at");
-
-                    b.HasKey("ClubCreationRequestId", "UserId");
-
-                    b.ToTable("club_creation_request_supporters", (string)null);
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubJoinRequest", b =>
@@ -1354,17 +1334,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
                     b.Navigation("ClubRole");
                 });
 
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubCreationRequestSupporter", b =>
-                {
-                    b.HasOne("CleanArchitecture.Core.Entities.ClubCreationRequest", "ClubCreationRequest")
-                        .WithMany("Supporters")
-                        .HasForeignKey("ClubCreationRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ClubCreationRequest");
-                });
-
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubJoinRequest", b =>
                 {
                     b.HasOne("CleanArchitecture.Core.Entities.Club", "Club")
@@ -1563,11 +1532,6 @@ namespace CleanArchitecture.Infrastructure.Migrations
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubPrivilege", b =>
                 {
                     b.Navigation("RolePrivileges");
-                });
-
-            modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubCreationRequest", b =>
-                {
-                    b.Navigation("Supporters");
                 });
 
             modelBuilder.Entity("CleanArchitecture.Core.Entities.ClubRole", b =>

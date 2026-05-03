@@ -5,6 +5,7 @@ using CleanArchitecture.Core.Features.Events.Commands.MarkAttendance;
 using CleanArchitecture.Core.Features.Events.Commands.RegisterToEvent;
 using CleanArchitecture.Core.Features.Events.Commands.UpdateEvent;
 using CleanArchitecture.Core.Features.Events.Queries.GetAllEvents;
+using CleanArchitecture.Core.Features.Events.Queries.GetPagedEvents;
 using CleanArchitecture.Core.Features.Events.Queries.GetEventAttendees;
 using CleanArchitecture.Core.Features.Events.Queries.GetEventById;
 using CleanArchitecture.Core.Features.Student.Queries.GetTranscript;
@@ -23,6 +24,12 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> Get([FromQuery] GetAllEventsParameter filter)
         {
             return Ok(await Mediator.Send(new GetAllEventsQuery() { ClubId = filter.ClubId }));
+        }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged([FromQuery] GetPagedEventsQuery query)
+        {
+            return Ok(await Mediator.Send(query));
         }
 
         [HttpGet("{id}")]

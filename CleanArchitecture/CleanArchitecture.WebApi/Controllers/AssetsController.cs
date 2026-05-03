@@ -6,6 +6,7 @@ using CleanArchitecture.Core.Features.Inventory.Commands.ReturnAsset;
 using CleanArchitecture.Core.Features.Inventory.Queries.GetInventory;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CleanArchitecture.WebApi.Controllers
@@ -14,8 +15,28 @@ namespace CleanArchitecture.WebApi.Controllers
     public class AssetsController : BaseApiController
     {
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int? clubId)
-            => Ok(await Mediator.Send(new GetInventoryQuery { ClubId = clubId }));
+        public async Task<IActionResult> Get(
+            [FromQuery] int? clubId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string searchValue = "",
+            [FromQuery] string sortColumn = "Name",
+            [FromQuery] string sortDirection = "asc",
+            [FromQuery] List<string> categoryFilters = null,
+            [FromQuery] List<string> conditionFilters = null,
+            [FromQuery] List<string> statusFilters = null)
+            => Ok(await Mediator.Send(new GetInventoryQuery
+            {
+                ClubId = clubId,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchValue = searchValue,
+                SortColumn = sortColumn,
+                SortDirection = sortDirection,
+                CategoryFilters = categoryFilters,
+                ConditionFilters = conditionFilters,
+                StatusFilters = statusFilters
+            }));
 
         [HttpPost]
         public async Task<IActionResult> Post(CreateInventoryItemCommand command)

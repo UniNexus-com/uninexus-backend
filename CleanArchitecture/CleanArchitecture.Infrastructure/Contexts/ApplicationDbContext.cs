@@ -73,7 +73,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
             base.OnModelCreating(builder);
 
 
-            // -- Application User -----
+// -- Application User -----
             builder.Entity<ApplicationUser>(entity =>
             {
                 entity.ToTable(name: "users");
@@ -166,6 +166,10 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
                 entity.Property(e => e.LastModified).HasColumnName("last_modified");
                 entity.Property(e => e.TotalBudget).HasColumnName("total_budget").HasColumnType("numeric(12,2)");
+
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Category);
+                entity.HasIndex(e => e.Name);
             });
 
             // -- Events -----
@@ -193,6 +197,11 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .HasForeignKey(e => e.ClubId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => e.StartDate);
+                entity.HasIndex(e => e.Category);
+                entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.Title);
             });
             
             // -- Club Roles -----
@@ -286,13 +295,13 @@ namespace CleanArchitecture.Infrastructure.Contexts
             {
                 entity.ToTable(name: "assets");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
                 entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(300);
                 entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(50);
                 entity.Property(e => e.Condition).HasColumnName("condition").HasMaxLength(50);
                 entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(200);
                 entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(50).HasDefaultValue("AVAILABLE");
-                entity.Property(e => e.Value).HasColumnName("value").HasColumnType("numeric(12,2)");
+                entity.Property(e => e.Value).HasColumnName("value").HasColumnType("numeric(12,2)").IsRequired();
                 entity.Property(e => e.SerialNo).HasColumnName("serial_no").HasMaxLength(100);
                 entity.Property(e => e.Description).HasColumnName("description");
                 entity.Property(e => e.ClubId).HasColumnName("club_id");
@@ -353,6 +362,11 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .HasForeignKey(e => e.ClubId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Created);
+                entity.HasIndex(e => new { e.Status, e.Created });
+                entity.HasIndex(e => e.Title);
             });
 
             // -- Event Attendees -----
@@ -369,6 +383,16 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .HasForeignKey(e => e.EventId);
             });
 
+
+            // -- Announcements -----
+            builder.Entity<Announcement>(entity =>
+            {
+                entity.HasIndex(e => e.Created);
+                entity.HasIndex(e => e.ClubId);
+                entity.HasIndex(e => new { e.ClubId, e.Created });
+                entity.HasIndex(e => e.Title);
+                entity.HasIndex(e => e.Message);
+            });
 
             // -- Identity Tables -----
             builder.Entity<IdentityRole>(entity =>

@@ -8,9 +8,11 @@ namespace CleanArchitecture.Core.DTOs.Inventory
         public string Condition { get; set; }
         public string Location { get; set; }
         public string Status { get; set; }
-        public decimal? Value { get; set; }
+        public decimal Value { get; set; }
         public string SerialNo { get; set; }
         public string Description { get; set; }
         public int? ClubId { get; set; }
+        public string LoanedBy { get; set; }
+        public string LoanedByUserId { get; set; }
     }
 }

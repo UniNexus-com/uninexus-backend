@@ -9,7 +9,7 @@ namespace CleanArchitecture.Core.Entities
         public string Condition { get; set; }
         public string Location { get; set; }
         public string Status { get; set; }
-        public decimal? Value { get; set; }
+        public decimal Value { get; set; }
         public string SerialNo { get; set; }
         public string Description { get; set; }
 
