@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace CleanArchitecture.Core.Entities
 {
@@ -15,5 +11,7 @@ namespace CleanArchitecture.Core.Entities
         public string RequesterUserId { get; set; }
         public string Status { get; set; }
         public string RejectionReason { get; set; }
+        public int SupporterCount { get; set; } = 0;
+        public ICollection<ClubCreationRequestSupporter> Supporters { get; set; } = new List<ClubCreationRequestSupporter>();
     }
 }

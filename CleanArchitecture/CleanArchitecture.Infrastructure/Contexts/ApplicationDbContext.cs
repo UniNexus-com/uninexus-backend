@@ -29,6 +29,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
         public DbSet<BudgetRequest> BudgetRequests { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<ClubCreationRequest> ClubCreationRequests { get; set; }
+        public DbSet<ClubCreationRequestSupporter> ClubCreationRequestSupporters { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<ClubChannel> ClubChannels { get; set; }
         public DbSet<ClubChannelMessage> ClubChannelMessages { get; set; }
@@ -479,6 +480,29 @@ namespace CleanArchitecture.Infrastructure.Contexts
                     .WithMany()
                     .HasForeignKey(e => e.ClubRoleId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // -- Club Creation Requests -----
+            builder.Entity<ClubCreationRequest>(entity =>
+            {
+                entity.ToTable(name: "ClubCreationRequests");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.SupporterCount).HasDefaultValue(0);
+
+                entity.HasMany(e => e.Supporters)
+                    .WithOne(s => s.ClubCreationRequest)
+                    .HasForeignKey(s => s.ClubCreationRequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // -- Club Creation Request Supporters -----
+            builder.Entity<ClubCreationRequestSupporter>(entity =>
+            {
+                entity.ToTable(name: "club_creation_request_supporters");
+                entity.HasKey(e => new { e.ClubCreationRequestId, e.UserId });
+                entity.Property(e => e.ClubCreationRequestId).HasColumnName("club_creation_request_id");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.SupportedAt).HasColumnName("supported_at");
             });
 
             // -- Chat Messages -----

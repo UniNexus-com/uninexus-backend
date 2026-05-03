@@ -228,7 +228,7 @@ namespace CleanArchitecture.Infrastructure.Services
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var resetUrl = $"{origin}/api/account/reset-password?email={Uri.EscapeDataString(user.Email)}&token={encoded}";
+            var resetUrl = $"{origin}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={encoded}";
 
             await _emailService.SendAsync(new EmailRequest
             {
@@ -394,10 +394,8 @@ namespace CleanArchitecture.Infrastructure.Services
                     }
                 }
 
-                // Assign new user's Identity role
+                // Assign CLUB_LEADER Identity role while keeping STUDENT
                 var currentUserRoles = await _userManager.GetRolesAsync(user);
-                if (currentUserRoles.Contains(Roles.STUDENT.ToString()))
-                    await _userManager.RemoveFromRoleAsync(user, Roles.STUDENT.ToString());
                 if (!currentUserRoles.Contains(Roles.CLUB_LEADER.ToString()))
                     await _userManager.AddToRoleAsync(user, Roles.CLUB_LEADER.ToString());
 
@@ -578,9 +576,7 @@ namespace CleanArchitecture.Infrastructure.Services
         {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var uri = new Uri($"{origin}/api/account/confirm-email/");
-            var url = QueryHelpers.AddQueryString(uri.ToString(), "userId", user.Id);
-            return QueryHelpers.AddQueryString(url, "code", encoded);
+            return $"{origin}/confirm-email?userId={Uri.EscapeDataString(user.Id)}&code={encoded}";
         }
     }
 }

@@ -21,6 +21,7 @@ namespace CleanArchitecture.Core.Interfaces
         DbSet<BudgetRequest> BudgetRequests { get; set; }
         DbSet<Announcement> Announcements { get; set; }
         DbSet<ClubCreationRequest> ClubCreationRequests { get; set; }
+        DbSet<ClubCreationRequestSupporter> ClubCreationRequestSupporters { get; set; }
         DbSet<ChatMessage> ChatMessages { get; set; }
         DbSet<ClubChannel> ClubChannels { get; set; }
         DbSet<ClubChannelMessage> ClubChannelMessages { get; set; }
