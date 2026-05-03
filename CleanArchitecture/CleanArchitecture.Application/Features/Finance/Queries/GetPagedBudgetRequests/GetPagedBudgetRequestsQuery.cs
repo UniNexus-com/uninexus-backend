@@ -83,6 +83,7 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
                 "clubname" => request.IsDescending ? query.OrderByDescending(r => r.Club.Name) : query.OrderBy(r => r.Club.Name),
                 "category" => request.IsDescending ? query.OrderByDescending(r => r.Category) : query.OrderBy(r => r.Category),
                 "amount"   => request.IsDescending ? query.OrderByDescending(r => r.Amount) : query.OrderBy(r => r.Amount),
+                "status"   => request.IsDescending ? query.OrderByDescending(r => r.Status) : query.OrderBy(r => r.Status),
                 _          => request.IsDescending ? query.OrderByDescending(r => r.Created) : query.OrderBy(r => r.Created)
             };
 
