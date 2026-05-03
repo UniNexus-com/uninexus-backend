@@ -100,14 +100,26 @@ namespace CleanArchitecture.WebApi.Controllers
             var query = new GetTranscriptQuery { UserId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value };
             var response = await Mediator.Send(query);
 
+            if (response.Data == null) return NotFound("Student profile not found.");
+
             var pdfBytes = TranscriptPdfGenerator.Generate(response.Data);
             return File(pdfBytes, "application/pdf", $"Transcript_{response.Data.StudentNumber}.pdf");
         }
 
-        [Authorize(Roles = "SKS_ADMIN")]
         [HttpGet("transcript/{userId}")]
         public async Task<IActionResult> DownloadTranscript(string userId)
         {
+            var currentUserId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            
+            // Checking for admin or leader roles robustly
+            var isAdmin = User.IsInRole("SKS_ADMIN") || User.Claims.Any(c => c.Type == "roles" && c.Value == "SKS_ADMIN");
+            var isLeader = User.IsInRole("CLUB_LEADER") || User.Claims.Any(c => c.Type == "roles" && c.Value == "CLUB_LEADER");
+
+            if (currentUserId != userId && !isAdmin && !isLeader)
+            {
+                return Forbid();
+            }
+
             var query = new GetTranscriptQuery { UserId = userId };
             var response = await Mediator.Send(query);
 
