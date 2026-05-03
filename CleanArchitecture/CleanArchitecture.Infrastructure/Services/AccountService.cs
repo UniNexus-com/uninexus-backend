@@ -428,6 +428,13 @@ namespace CleanArchitecture.Infrastructure.Services
             }
             else // STUDENT
             {
+                // Check if the user is a President in any club before demoting
+                var isAnyPresident = await _context.UserClubs
+                    .AnyAsync(uc => uc.UserId == userId && uc.Role.Name == "President" && uc.Role.IsSystemRole && uc.IsActive);
+                
+                if (isAnyPresident)
+                    throw new ApiException("This user is a club president. You must transfer the presidency before changing their role to Student.");
+
                 var currentUserRoles = await _userManager.GetRolesAsync(user);
                 if (currentUserRoles.Contains(Roles.CLUB_LEADER.ToString()))
                     await _userManager.RemoveFromRoleAsync(user, Roles.CLUB_LEADER.ToString());

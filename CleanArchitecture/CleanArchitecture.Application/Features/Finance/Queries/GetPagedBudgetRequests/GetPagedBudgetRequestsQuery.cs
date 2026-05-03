@@ -16,9 +16,11 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public string SearchValue { get; set; }
-        public string Status { get; set; } = "PENDING";
+        public string Status { get; set; }
+        public List<string> StatusFilters { get; set; }
         public List<int> ClubIds { get; set; }
         public List<string> Categories { get; set; }
+        public List<string> CategoryFilters { get; set; }
         public string SortBy { get; set; } = "Created";
         public bool IsDescending { get; set; } = true;
     }
@@ -39,14 +41,29 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(request.Status))
+            // Status Filtering
+            if (request.StatusFilters != null && request.StatusFilters.Any())
+            {
+                query = query.Where(r => request.StatusFilters.Contains(r.Status));
+            }
+            else if (!string.IsNullOrEmpty(request.Status))
+            {
                 query = query.Where(r => r.Status == request.Status);
+            }
 
+            // Club Filtering
             if (request.ClubIds != null && request.ClubIds.Any())
                 query = query.Where(r => r.ClubId.HasValue && request.ClubIds.Contains(r.ClubId.Value));
 
-            if (request.Categories != null && request.Categories.Any())
+            // Category Filtering
+            if (request.CategoryFilters != null && request.CategoryFilters.Any())
+            {
+                query = query.Where(r => request.CategoryFilters.Contains(r.Category));
+            }
+            else if (request.Categories != null && request.Categories.Any())
+            {
                 query = query.Where(r => request.Categories.Contains(r.Category));
+            }
 
             if (!string.IsNullOrEmpty(request.SearchValue))
             {
@@ -66,6 +83,7 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetPagedBudgetRequests
                 "clubname" => request.IsDescending ? query.OrderByDescending(r => r.Club.Name) : query.OrderBy(r => r.Club.Name),
                 "category" => request.IsDescending ? query.OrderByDescending(r => r.Category) : query.OrderBy(r => r.Category),
                 "amount"   => request.IsDescending ? query.OrderByDescending(r => r.Amount) : query.OrderBy(r => r.Amount),
+                "status"   => request.IsDescending ? query.OrderByDescending(r => r.Status) : query.OrderBy(r => r.Status),
                 _          => request.IsDescending ? query.OrderByDescending(r => r.Created) : query.OrderBy(r => r.Created)
             };
 
