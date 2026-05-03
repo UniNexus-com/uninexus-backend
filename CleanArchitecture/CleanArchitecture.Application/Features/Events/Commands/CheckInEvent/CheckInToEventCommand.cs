@@ -57,6 +57,7 @@ namespace CleanArchitecture.Core.Features.Events.Commands.CheckInEvent
 
             int pointsToAward = 50;
             user.ScoreWalletBalance += pointsToAward;
+            user.TotalScore += pointsToAward;
 
             _context.Set<ApplicationUser>().Update(user);
 

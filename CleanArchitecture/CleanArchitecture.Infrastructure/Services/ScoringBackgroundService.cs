@@ -62,8 +62,8 @@ namespace CleanArchitecture.Infrastructure.Services
                     .Where(ea => ea.UserId == user.Id && ea.Status == "Attended")
                     .SumAsync(ea => ea.PointsEarned);
 
-                // Update TotalScore
-                user.TotalScore = totalAttendancePoints;
+                // Update TotalScore - ensuring it never decreases and stays at least equal to current balance
+                user.TotalScore = Math.Max(user.TotalScore, Math.Max(totalAttendancePoints, user.ScoreWalletBalance));
                 await userManager.UpdateAsync(user);
             }
 

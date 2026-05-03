@@ -496,16 +496,17 @@ namespace CleanArchitecture.Infrastructure.Services
                 .Join(_userManager.Users,
                     uc => uc.UserId,
                     u => u.Id,
-                    (uc, u) => new LeaderboardUserDto
-                    {
-                        UserId = u.Id,
-                        StudentNumber = u.StudentNumber,
-                        FullName = u.FullName,
-                        ScoreWalletBalance = u.ScoreWalletBalance,
-                        TotalScore = u.TotalScore
-                    })
+                    (uc, u) => u)
                 .OrderByDescending(u => u.TotalScore)
                 .Take(limit)
+                .Select(u => new LeaderboardUserDto
+                {
+                    UserId = u.Id,
+                    StudentNumber = u.StudentNumber,
+                    FullName = u.FullName,
+                    ScoreWalletBalance = u.ScoreWalletBalance,
+                    TotalScore = u.TotalScore
+                })
                 .ToListAsync();
 
             for (int i = 0; i < clubUsers.Count; i++)
