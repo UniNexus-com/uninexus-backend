@@ -62,8 +62,15 @@ namespace CleanArchitecture.Infrastructure.Services
                     .Where(ea => ea.UserId == user.Id && ea.Status == "Attended")
                     .SumAsync(ea => ea.PointsEarned);
 
-                // Update TotalScore - ensuring it never decreases and stays at least equal to current balance
-                user.TotalScore = Math.Max(user.TotalScore, Math.Max(totalAttendancePoints, user.ScoreWalletBalance));
+                // Strictly update TotalScore based on current attendance data
+                user.TotalScore = totalAttendancePoints;
+
+                // Ensure ScoreWalletBalance does not exceed TotalScore (if points were removed/corrected)
+                if (user.ScoreWalletBalance > user.TotalScore)
+                {
+                    user.ScoreWalletBalance = user.TotalScore;
+                }
+
                 await userManager.UpdateAsync(user);
             }
 
