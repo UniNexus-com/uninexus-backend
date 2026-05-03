@@ -4,8 +4,10 @@ using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -26,6 +28,14 @@ namespace CleanArchitecture.Infrastructure.Services
         }
 
         public async Task SendAsync(EmailRequest request)
+        {
+            if (!string.IsNullOrWhiteSpace(_mailSettings.ApiKey))
+                await SendViaBrevoApiAsync(request);
+            else
+                await SendViaSmtpAsync(request);
+        }
+
+        private async Task SendViaBrevoApiAsync(EmailRequest request)
         {
             try
             {
@@ -66,7 +76,39 @@ namespace CleanArchitecture.Infrastructure.Services
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, "Email could not be sent: {Message}", ex.Message);
+                _logger.LogError(ex, "Email could not be sent via Brevo: {Message}", ex.Message);
+                throw new ApiException(ex.Message);
+            }
+        }
+
+        private async Task SendViaSmtpAsync(EmailRequest request)
+        {
+            try
+            {
+                var from = request.From ?? _mailSettings.From;
+                var displayName = _mailSettings.DisplayName ?? "UniNexus";
+
+                using var message = new MailMessage
+                {
+                    From = new MailAddress(from, displayName),
+                    Subject = request.Subject,
+                    Body = request.Body,
+                    IsBodyHtml = true,
+                };
+                message.To.Add(request.To);
+
+                using var smtp = new SmtpClient(_mailSettings.Host, _mailSettings.Port)
+                {
+                    Credentials = new NetworkCredential(_mailSettings.UserName, _mailSettings.Password),
+                    EnableSsl = true,
+                };
+
+                await smtp.SendMailAsync(message);
+                _logger.LogInformation("Email sent via SMTP to {To}", request.To);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Email could not be sent via SMTP: {Message}", ex.Message);
                 throw new ApiException(ex.Message);
             }
         }

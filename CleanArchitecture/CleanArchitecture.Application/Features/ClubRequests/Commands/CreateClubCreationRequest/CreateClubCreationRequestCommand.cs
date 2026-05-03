@@ -1,11 +1,10 @@
 ﻿using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
-using System;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,31 +20,43 @@ namespace CleanArchitecture.Core.Features.ClubRequests.Commands.CreateClubCreati
 
     public class CreateClubCreationRequestCommandHandler : IRequestHandler<CreateClubCreationRequestCommand, Response<int>>
     {
-        private readonly IGenericRepositoryAsync<ClubCreationRequest> _repository;
+        private readonly IApplicationDbContext _context;
         private readonly IAuthenticatedUserService _authenticatedUserService;
 
         public CreateClubCreationRequestCommandHandler(
-            IGenericRepositoryAsync<ClubCreationRequest> repository,
+            IApplicationDbContext context,
             IAuthenticatedUserService authenticatedUserService)
         {
-            _repository = repository;
+            _context = context;
             _authenticatedUserService = authenticatedUserService;
         }
 
         public async Task<Response<int>> Handle(CreateClubCreationRequestCommand request, CancellationToken cancellationToken)
         {
+            var currentUserId = _authenticatedUserService.UserId;
+
+            var hasActiveRequest = await _context.ClubCreationRequests
+                .AnyAsync(r => r.RequesterUserId == currentUserId &&
+                               (r.Status == "GATHERING_SUPPORTERS" || r.Status == "PENDING"),
+                          cancellationToken);
+
+            if (hasActiveRequest)
+                throw new ApiException("You already have an active club creation request. Please wait for it to be processed.");
+
             var entity = new ClubCreationRequest
             {
                 Name = request.Name,
                 Description = request.Description,
                 Category = request.Category,
                 AdvisorName = request.AdvisorName,
-                RequesterUserId = _authenticatedUserService.UserId,
-                Status = "PENDING"
+                RequesterUserId = currentUserId,
+                Status = "GATHERING_SUPPORTERS"
             };
 
-            await _repository.AddAsync(entity);
-            return new Response<int>(entity.Id, "Your request to establish a club has been successfully received and submitted for managerial approval.");
+            await _context.ClubCreationRequests.AddAsync(entity, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return new Response<int>(entity.Id, "Your club creation request has been submitted. It needs 50 supporters before it can be reviewed by the administration.");
         }
     }
 }

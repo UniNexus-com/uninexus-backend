@@ -1,4 +1,7 @@
 ﻿using CleanArchitecture.Core.Features.ClubRequests.Commands.CreateClubCreationRequest;
+using CleanArchitecture.Core.Features.ClubRequests.Commands.SupportClubCreationRequest;
+using CleanArchitecture.Core.Features.ClubRequests.Queries.GetGatheringRequests;
+using CleanArchitecture.Core.Features.ClubRequests.Queries.GetMyClubCreationRequest;
 using CleanArchitecture.Core.Features.Clubs.Commands.ApproveClubCreationRequest;
 using CleanArchitecture.Core.Features.Clubs.Commands.RejectClubCreationRequest;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetPendingClubRequests;
@@ -18,7 +21,28 @@ namespace CleanArchitecture.WebApi.Controllers
             return Ok(await Mediator.Send(command));
         }
 
-        // SKS_ADMIN'in bekleyen talepleri görmesi
+        // Öğrencinin kendi kulüp kurma talebini görüntülemesi
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyRequest()
+        {
+            return Ok(await Mediator.Send(new GetMyClubCreationRequestQuery()));
+        }
+
+        // Destek bekleyen talepleri listeleme (mobil)
+        [HttpGet("gathering")]
+        public async Task<IActionResult> GetGatheringRequests()
+        {
+            return Ok(await Mediator.Send(new GetGatheringRequestsQuery()));
+        }
+
+        // Bir talebe destek olma (öğrenci)
+        [HttpPost("{id}/support")]
+        public async Task<IActionResult> SupportRequest(int id)
+        {
+            return Ok(await Mediator.Send(new SupportClubCreationRequestCommand { RequestId = id }));
+        }
+
+        // SKS_ADMIN'in bekleyen (50 destek almış) talepleri görmesi
         [HttpGet("pending")]
         [Authorize(Roles = "SKS_ADMIN")]
         public async Task<IActionResult> GetPendingRequests()
