@@ -18,5 +18,7 @@ namespace CleanArchitecture.Core.Features.Inventory.Queries.GetInventory
             List<string> categoryFilters,
             List<string> conditionFilters,
             List<string> statusFilters);
+
+        Task<IReadOnlyList<AssetViewModel>> GetBorrowedAssetsByUserAsync(string userId);
     }
 }

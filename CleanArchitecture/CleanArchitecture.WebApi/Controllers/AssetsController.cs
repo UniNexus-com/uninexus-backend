@@ -4,6 +4,7 @@ using CleanArchitecture.Core.Features.Inventory.Commands.UpdateInventoryItemStat
 using CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset;
 using CleanArchitecture.Core.Features.Inventory.Commands.ReturnAsset;
 using CleanArchitecture.Core.Features.Inventory.Queries.GetInventory;
+using CleanArchitecture.Core.Features.Inventory.Queries.GetMyBorrowedAssets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -37,6 +38,10 @@ namespace CleanArchitecture.WebApi.Controllers
                 ConditionFilters = conditionFilters,
                 StatusFilters = statusFilters
             }));
+
+        [HttpGet("my-borrowed")]
+        public async Task<IActionResult> GetMyBorrowed()
+            => Ok(await Mediator.Send(new GetMyBorrowedAssetsQuery()));
 
         [HttpPost]
         public async Task<IActionResult> Post(CreateInventoryItemCommand command)

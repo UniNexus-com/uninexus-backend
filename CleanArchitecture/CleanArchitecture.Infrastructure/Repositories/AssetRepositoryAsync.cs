@@ -92,7 +92,7 @@ namespace CleanArchitecture.Infrastructure.Repository
             };
 
             // Skip and Take for pagination
-            var data = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var data = await query.Include(a => a.Club).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             // Map to ViewModel
             var result = new List<AssetViewModel>();
@@ -124,12 +124,49 @@ namespace CleanArchitecture.Infrastructure.Repository
                     SerialNo = asset.SerialNo,
                     Description = asset.Description,
                     ClubId = asset.ClubId,
+                    ClubName = asset.Club?.Name,
                     LoanedBy = loanedBy,
                     LoanedByUserId = loanedByUserId
                 });
             }
 
             return (result, totalCount);
+        }
+
+        public async Task<IReadOnlyList<AssetViewModel>> GetBorrowedAssetsByUserAsync(string userId)
+        {
+            var loans = await _assetLoans
+                .Include(l => l.Asset)
+                .ThenInclude(a => a.Club)
+                .Where(l => l.UserId == userId && l.Status != "Returned" && l.ReturnedAt == null)
+                .OrderByDescending(l => l.BorrowedAt)
+                .ToListAsync();
+
+            var result = new List<AssetViewModel>();
+            foreach (var loan in loans)
+            {
+                var asset = loan.Asset;
+                var user = await _users.FindAsync(userId);
+
+                result.Add(new AssetViewModel
+                {
+                    Id = asset.Id,
+                    Name = asset.Name,
+                    Category = asset.Category,
+                    Condition = asset.Condition,
+                    Location = asset.Location,
+                    Status = asset.Status,
+                    Value = asset.Value,
+                    SerialNo = asset.SerialNo,
+                    Description = asset.Description,
+                    ClubId = asset.ClubId,
+                    ClubName = asset.Club?.Name,
+                    LoanedBy = user?.FullName,
+                    LoanedByUserId = userId
+                });
+            }
+
+            return result;
         }
     }
 }
