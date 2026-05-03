@@ -21,18 +21,22 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset
     {
         private readonly IApplicationDbContext _context;
         private readonly IAuthenticatedUserService _authenticatedUser;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public BorrowAssetCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUser)
+        public BorrowAssetCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUser, IClubRepositoryAsync clubRepository)
         {
             _context = context;
             _authenticatedUser = authenticatedUser;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(BorrowAssetCommand request, CancellationToken cancellationToken)
         {
-            var userId = request.UserId ?? _authenticatedUser.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var requesterId = _authenticatedUser.UserId;
+            if (string.IsNullOrEmpty(requesterId))
                 throw new ApiException("You must be logged in to borrow items.");
+
+            var userId = request.UserId ?? requesterId;
 
             // 1. Check Inventory Lock – user must not have any overdue loans
             var hasOverdue = await _context.AssetLoans
@@ -54,6 +58,13 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset
 
             if (asset.Status != "AVAILABLE")
                 throw new ApiException($"This item is not available for borrowing. Current status: {asset.Status}");
+
+            // Authorization: If borrowing for someone else, must have Manage Assets privilege
+            if (userId != requesterId)
+            {
+                if (!await _clubRepository.HasPrivilegeInClubAsync(asset.ClubId.Value, requesterId, "Manage Assets"))
+                    throw new ApiException("Authorization Error: You do not have permission to borrow items on behalf of others.");
+            }
 
             // 3. Create loan record
             var loan = new AssetLoan

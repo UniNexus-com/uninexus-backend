@@ -13,6 +13,7 @@ using CleanArchitecture.Core.Features.Clubs.Queries.GetClubMembers;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetMemberDetails;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetManagedClubs;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubStats;
+using CleanArchitecture.Core.Features.Clubs.Queries.GetPagedJoinRequests;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetClubHistory;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetPresidentClubs;
 using CleanArchitecture.Core.Features.Roles.Commands.CreateClubRole;
@@ -108,6 +109,13 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> GetJoinRequests(int id)
         {
             return Ok(await Mediator.Send(new GetClubJoinRequestsQuery { ClubId = id }));
+        }
+
+        [HttpGet("{id}/join-requests/paged")]
+        public async Task<IActionResult> GetPagedJoinRequests(int id, [FromQuery] GetPagedJoinRequestsQuery query)
+        {
+            query.ClubId = id;
+            return Ok(await Mediator.Send(query));
         }
 
         [HttpPost("accept-request/{id}")]

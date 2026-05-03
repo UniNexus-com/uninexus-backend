@@ -55,8 +55,11 @@ namespace CleanArchitecture.WebApi.Controllers
 
         /// <summary>POST /v1/Assets/{id}/borrow — QR ile ekipman ödünç al</summary>
         [HttpPost("{id}/borrow")]
-        public async Task<IActionResult> Borrow(int id)
-            => Ok(await Mediator.Send(new BorrowAssetCommand { AssetId = id }));
+        public async Task<IActionResult> Borrow(int id, [FromBody] BorrowAssetCommand command)
+        {
+            command.AssetId = id;
+            return Ok(await Mediator.Send(command));
+        }
 
         /// <summary>POST /v1/Assets/{id}/return — QR ile ekipman iade et</summary>
         [HttpPost("{id}/return")]

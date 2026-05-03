@@ -4,7 +4,7 @@
         <name>CleanArchitecture.WebApi</name>
     </assembly>
     <members>
-        <member name="M:CleanArchitecture.WebApi.Controllers.AssetsController.Borrow(System.Int32)">
+        <member name="M:CleanArchitecture.WebApi.Controllers.AssetsController.Borrow(System.Int32,CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset.BorrowAssetCommand)">
             <summary>POST /v1/Assets/{id}/borrow — QR ile ekipman ödünç al</summary>
         </member>
         <member name="M:CleanArchitecture.WebApi.Controllers.AssetsController.Return(System.Int32)">

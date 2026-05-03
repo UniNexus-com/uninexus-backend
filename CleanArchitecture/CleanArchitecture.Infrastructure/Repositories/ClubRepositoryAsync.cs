@@ -171,6 +171,72 @@ namespace CleanArchitecture.Infrastructure.Repository
             return await query.ToListAsync();
         }
 
+        public async Task<(IReadOnlyList<ClubJoinRequestDto> Data, int TotalCount)> GetJoinRequestsPagedAsync(
+            int clubId,
+            int pageNumber,
+            int pageSize,
+            string searchValue,
+            string sortColumn,
+            string sortDirection)
+        {
+            var query = from jr in _joinRequests
+                        join u in _users on jr.UserId equals u.Id
+                        where jr.ClubId == clubId && jr.Status == Core.Enums.ClubJoinStatus.Pending
+                        select new { jr, u };
+
+            // Search
+            if (!string.IsNullOrEmpty(searchValue))
+            {
+                searchValue = searchValue.ToLower();
+                query = query.Where(x => x.u.FullName.ToLower().Contains(searchValue) || x.u.Email.ToLower().Contains(searchValue));
+            }
+
+            // Sorting
+            if (!string.IsNullOrEmpty(sortColumn))
+            {
+                bool isAsc = sortDirection?.ToLower() == "asc";
+                switch (sortColumn.ToLower())
+                {
+                    case "name":
+                        query = isAsc ? query.OrderBy(x => x.u.FullName) : query.OrderByDescending(x => x.u.FullName);
+                        break;
+                    case "email":
+                        query = isAsc ? query.OrderBy(x => x.u.Email) : query.OrderByDescending(x => x.u.Email);
+                        break;
+                    case "created":
+                    case "date":
+                        query = isAsc ? query.OrderBy(x => x.jr.Created) : query.OrderByDescending(x => x.jr.Created);
+                        break;
+                    default:
+                        query = query.OrderByDescending(x => x.jr.Created);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(x => x.jr.Created);
+            }
+
+            var finalQuery = query.Select(x => new ClubJoinRequestDto
+            {
+                Id = x.jr.Id,
+                UserId = x.u.Id,
+                Name = x.u.FullName,
+                Email = x.u.Email,
+                Message = "Join Request", // Field mapping if needed
+                Status = x.jr.Status.ToString(),
+                Created = x.jr.Created
+            });
+
+            var totalCount = await finalQuery.CountAsync();
+            var data = await finalQuery
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (data, totalCount);
+        }
+
         public async Task<IReadOnlyList<ManagedClubDto>> GetManagedClubsAsync(string userId)
         {
             return await _userClubs

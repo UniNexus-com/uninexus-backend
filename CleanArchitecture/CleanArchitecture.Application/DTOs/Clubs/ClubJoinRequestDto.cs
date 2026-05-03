@@ -1,3 +1,5 @@
+using System;
+
 namespace CleanArchitecture.Core.DTOs.Clubs
 {
     public class ClubJoinRequestDto
@@ -8,5 +10,6 @@ namespace CleanArchitecture.Core.DTOs.Clubs
         public string Email { get; set; }
         public string Message { get; set; }
         public string Status { get; set; }
+        public DateTime Created { get; set; }
     }
 }

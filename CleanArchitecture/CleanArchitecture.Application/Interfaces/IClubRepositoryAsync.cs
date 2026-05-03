@@ -10,6 +10,13 @@ namespace CleanArchitecture.Core.Interfaces
         Task<IReadOnlyList<ClubMemberDto>> GetClubMembersAsync(int clubId);
         Task<(IReadOnlyList<ClubMemberDto> Data, int TotalCount)> GetClubMembersPagedAsync(int clubId, int pageNumber, int pageSize, string searchValue, string sortColumn, string sortDirection, List<string> roleFilters, List<string> statusFilters);
         Task<IReadOnlyList<ClubJoinRequestDto>> GetClubJoinRequestsAsync(int clubId);
+        Task<(IReadOnlyList<ClubJoinRequestDto> Data, int TotalCount)> GetJoinRequestsPagedAsync(
+            int clubId,
+            int pageNumber,
+            int pageSize,
+            string searchValue,
+            string sortColumn,
+            string sortDirection);
         Task<IReadOnlyList<ManagedClubDto>> GetManagedClubsAsync(string userId);
         Task<MemberDetailsDto> GetClubMemberDetailsAsync(int clubId, string userId);
         Task<ClubJoinRequest> GetJoinRequestByIdAsync(int requestId);
