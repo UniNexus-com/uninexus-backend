@@ -19,28 +19,37 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.ReturnAsset
     {
         private readonly IApplicationDbContext _context;
         private readonly IAuthenticatedUserService _authenticatedUser;
+        private readonly IClubRepositoryAsync _clubRepository;
 
-        public ReturnAssetCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUser)
+        public ReturnAssetCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUser, IClubRepositoryAsync clubRepository)
         {
             _context = context;
             _authenticatedUser = authenticatedUser;
+            _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(ReturnAssetCommand request, CancellationToken cancellationToken)
         {
-            var userId = _authenticatedUser.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var requesterId = _authenticatedUser.UserId;
+            if (string.IsNullOrEmpty(requesterId))
                 throw new ApiException("You must be logged in to return items.");
 
-            // 1. Find the active loan for this asset by this user
+            // 1. Find the active loan for this asset
             var loan = await _context.AssetLoans
                 .FirstOrDefaultAsync(l => l.AssetId == request.AssetId
-                                       && l.UserId == userId
                                        && (l.Status == "Active" || l.Status == "Overdue"),
                                        cancellationToken);
 
             if (loan == null)
                 throw new ApiException("No active loan found for this item.");
+
+            // 2. Authorization: Check if user is borrower OR has Manage Assets privilege for the club
+            if (loan.UserId != requesterId)
+            {
+                var assetObj = await _context.Assets.FindAsync(new object[] { request.AssetId }, cancellationToken);
+                if (assetObj == null || !await _clubRepository.HasPrivilegeInClubAsync(assetObj.ClubId.Value, requesterId, "Manage Assets"))
+                    throw new ApiException("Authorization Error: You do not have permission to return this item on behalf of another user.");
+            }
 
             // 2. Update loan record
             loan.ReturnedAt = DateTime.UtcNow;
