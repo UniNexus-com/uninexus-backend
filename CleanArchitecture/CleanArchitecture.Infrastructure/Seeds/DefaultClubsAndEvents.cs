@@ -130,7 +130,6 @@ namespace CleanArchitecture.Infrastructure.Seeds
             // 5. Seed Events
             var events = new List<Event>
             {
-                // Yazılım ve Teknoloji Kulübü
                 new Event
                 {
                     Title = "Hackathon 2026",
@@ -139,9 +138,9 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(16),
                     Location = "Mühendislik Fakültesi B Blok",
                     IsActive = true,
-                    ClubId = clubs[0].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[0].Id, SortOrder = 0 } }
                 },
                 new Event
                 {
@@ -151,9 +150,9 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(5).AddHours(3),
                     Location = "Bilgisayar Lab 3",
                     IsActive = true,
-                    ClubId = clubs[0].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[0].Id, SortOrder = 0 } }
                 },
                 new Event
                 {
@@ -163,12 +162,11 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(11),
                     Location = "Online + Kampüs Karma",
                     IsActive = true,
-                    ClubId = clubs[0].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[0].Id, SortOrder = 0 } }
                 },
 
-                // Müzik Kulübü
                 new Event
                 {
                     Title = "Bahar Konseri",
@@ -177,9 +175,9 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(20).AddHours(4),
                     Location = "Kültür Merkezi Ana Salon",
                     IsActive = true,
-                    ClubId = clubs[1].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[1].Id, SortOrder = 0 } }
                 },
                 new Event
                 {
@@ -189,12 +187,11 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(3).AddHours(2),
                     Location = "Müzik Odası 101",
                     IsActive = true,
-                    ClubId = clubs[1].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[1].Id, SortOrder = 0 } }
                 },
 
-                // Fotoğrafçılık Kulübü
                 new Event
                 {
                     Title = "Kampüs Fotoğraf Yarışması",
@@ -203,9 +200,9 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(21),
                     Location = "Kampüs Geneli",
                     IsActive = true,
-                    ClubId = clubs[2].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[2].Id, SortOrder = 0 } }
                 },
                 new Event
                 {
@@ -215,12 +212,11 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(-5).AddHours(3),
                     Location = "Güzel Sanatlar Fakültesi Foto Lab",
                     IsActive = false,
-                    ClubId = clubs[2].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[2].Id, SortOrder = 0 } }
                 },
 
-                // Girişimcilik Kulübü
                 new Event
                 {
                     Title = "Demo Day 2026",
@@ -229,9 +225,9 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(30).AddHours(5),
                     Location = "Rektörlük Konferans Salonu",
                     IsActive = true,
-                    ClubId = clubs[3].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[3].Id, SortOrder = 0 } }
                 },
                 new Event
                 {
@@ -241,12 +237,11 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(8).AddHours(6),
                     Location = "Girişimcilik Merkezi",
                     IsActive = true,
-                    ClubId = clubs[3].Id,
                     Created = now,
-                    CreatedBy = "seed"
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub> { new EventClub { ClubId = clubs[3].Id, SortOrder = 0 } }
                 },
 
-                // Kulüpsüz etkinlik
                 new Event
                 {
                     Title = "Üniversite Tanıtım Günleri",
@@ -255,9 +250,24 @@ namespace CleanArchitecture.Infrastructure.Seeds
                     EndDate = now.AddDays(-1),
                     Location = "Ana Kampüs",
                     IsActive = false,
-                    ClubId = null,
                     Created = now,
                     CreatedBy = "seed"
+                },
+                new Event
+                {
+                    Title = "Yazılım × Girişimcilik Kampüs Buluşması",
+                    Description = "İki kulübün ortak düzenlediği panel ve networking akşamı.",
+                    StartDate = now.AddDays(12),
+                    EndDate = now.AddDays(12).AddHours(4),
+                    Location = "Mühendislik Amfisi",
+                    IsActive = true,
+                    Created = now,
+                    CreatedBy = "seed",
+                    EventClubs = new List<EventClub>
+                    {
+                        new EventClub { ClubId = clubs[0].Id, SortOrder = 0 },
+                        new EventClub { ClubId = clubs[3].Id, SortOrder = 1 }
+                    }
                 },
             };
 

@@ -1,5 +1,5 @@
 using System;
-using CleanArchitecture.Core.Entities;
+using System.Collections.Generic;
 
 namespace CleanArchitecture.Core.Entities
 {
@@ -18,7 +18,6 @@ namespace CleanArchitecture.Core.Entities
         public bool RequireApproval { get; set; }
         public string Tags { get; set; }
 
-        public int? ClubId { get; set; }
-        public Club Club { get; set; }
+        public ICollection<EventClub> EventClubs { get; set; } = new List<EventClub>();
     }
 }

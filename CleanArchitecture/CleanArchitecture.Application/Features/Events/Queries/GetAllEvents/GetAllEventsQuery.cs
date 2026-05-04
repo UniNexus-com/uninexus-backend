@@ -1,9 +1,12 @@
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using CleanArchitecture.Core.DTOs.Event;
+using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Features.Events.Common;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -21,24 +24,27 @@ namespace CleanArchitecture.Core.Features.Events.Queries.GetAllEvents
         private readonly IApplicationDbContext _context;
         private readonly IClubRepositoryAsync _clubRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
 
         public GetAllEventsQueryHandler(
-            IApplicationDbContext context, 
+            IApplicationDbContext context,
             IClubRepositoryAsync clubRepository,
-            IMapper mapper, 
-            IAuthenticatedUserService authenticatedUserService)
+            IMapper mapper,
+            IAuthenticatedUserService authenticatedUserService,
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _clubRepository = clubRepository;
             _mapper = mapper;
             _authenticatedUserService = authenticatedUserService;
+            _userManager = userManager;
         }
 
         public async Task<Response<IEnumerable<EventViewModel>>> Handle(GetAllEventsQuery request, CancellationToken cancellationToken)
         {
             var userId = _authenticatedUserService.UserId;
-            
+
             // If ClubId is provided, check if user has authority in that club
             if (request.ClubId.HasValue)
             {
@@ -49,16 +55,35 @@ namespace CleanArchitecture.Core.Features.Events.Queries.GetAllEvents
                 }
             }
 
-            var query = _context.Events.Include(e => e.Club).AsQueryable();
+            var query = _context.Events
+                .Include(e => e.EventClubs).ThenInclude(ec => ec.Club)
+                .AsQueryable();
 
             if (request.ClubId.HasValue)
             {
-                query = query.Where(e => e.ClubId == request.ClubId.Value);
+                query = query.Where(e => e.EventClubs.Any(ec => ec.ClubId == request.ClubId.Value));
             }
+
+            // Visibility filter — sızıntıyı engelle, izinsiz etkinlikleri yok say
+            query = await EventVisibilityFilter.ApplyAsync(query, _context, _userManager, userId, cancellationToken);
 
             var allEvents = await query.ToListAsync(cancellationToken);
 
-            var viewModels = _mapper.Map<IEnumerable<EventViewModel>>(allEvents);
+            var viewModels = _mapper.Map<List<EventViewModel>>(allEvents);
+
+            // Mevcut kullanıcının kayıt durumunu işaretle (tek sorgu, küçük IN listesi)
+            if (!string.IsNullOrEmpty(userId) && viewModels.Count > 0)
+            {
+                var ids = viewModels.Select(v => v.Id).ToList();
+                var registeredIds = await _context.EventAttendees
+                    .Where(a => a.UserId == userId && ids.Contains(a.EventId))
+                    .Select(a => a.EventId)
+                    .ToListAsync(cancellationToken);
+                var registeredSet = new HashSet<int>(registeredIds);
+                foreach (var vm in viewModels)
+                    vm.IsRegistered = registeredSet.Contains(vm.Id);
+            }
+
             return new Response<IEnumerable<EventViewModel>>(viewModels);
         }
     }

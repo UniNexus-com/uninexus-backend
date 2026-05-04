@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Exceptions;
+using CleanArchitecture.Core.Features.Events.Common;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
@@ -32,16 +33,13 @@ namespace CleanArchitecture.Core.Features.Events.Commands.MarkAttendance
 
         public async Task<Response<string>> Handle(MarkAttendanceCommand request, CancellationToken cancellationToken)
         {
-            var eventEntity = await _context.Events.FindAsync(new object[] { request.EventId }, cancellationToken);
+            var eventEntity = await _context.Events
+                .Include(e => e.EventClubs)
+                .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
             if (eventEntity == null) throw new ApiException("Etkinlik bulunamadı.");
 
-            if (eventEntity.ClubId.HasValue)
-            {
-                if (!await _clubRepository.HasPrivilegeInClubAsync(eventEntity.ClubId.Value, _authenticatedUser.UserId, "Manage Events"))
-                    throw new ApiException("Bu etkinlik için yoklama alma yetkiniz bulunmamaktadır.");
-            }
+            await EventManagementPermissions.EnsureCanManageEventAsync(eventEntity, _authenticatedUser.UserId, _clubRepository);
 
-            // Find the attendee record — EF Core tracks by composite key (UserId, EventId)
             var attendee = await _context.EventAttendees
                 .FirstOrDefaultAsync(x => x.EventId == request.EventId && x.UserId == request.UserId, cancellationToken);
 

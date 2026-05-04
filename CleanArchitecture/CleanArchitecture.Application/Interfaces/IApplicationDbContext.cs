@@ -9,6 +9,7 @@ namespace CleanArchitecture.Core.Interfaces
     {
         DbSet<RefreshToken> RefreshTokens { get; set; }
         DbSet<Event> Events { get; set; }
+        DbSet<EventClub> EventClubs { get; set; }
         DbSet<Club> Clubs { get; set; }
         DbSet<ClubRole> ClubRoles { get; set; }
         DbSet<ClubPrivilege> ClubPrivileges { get; set; }

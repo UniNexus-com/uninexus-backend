@@ -1,7 +1,9 @@
 using CleanArchitecture.Core.Exceptions;
+using CleanArchitecture.Core.Features.Events.Common;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,31 +29,28 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
 
     public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Response<int>>
     {
-        private readonly IGenericRepositoryAsync<Entities.Event> _eventRepository;
+        private readonly IApplicationDbContext _context;
         private readonly IAuthenticatedUserService _authenticatedUserService;
         private readonly IClubRepositoryAsync _clubRepository;
 
-        public UpdateEventCommandHandler(IGenericRepositoryAsync<Entities.Event> eventRepository, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
+        public UpdateEventCommandHandler(IApplicationDbContext context, IAuthenticatedUserService authenticatedUserService, IClubRepositoryAsync clubRepository)
         {
-            _eventRepository = eventRepository;
+            _context = context;
             _authenticatedUserService = authenticatedUserService;
             _clubRepository = clubRepository;
         }
 
         public async Task<Response<int>> Handle(UpdateEventCommand request, CancellationToken cancellationToken)
         {
-            var eventItem = await _eventRepository.GetByIdAsync(request.Id);
+            var eventItem = await _context.Events
+                .AsTracking()
+                .Include(e => e.EventClubs)
+                .FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken);
 
             if (eventItem == null)
-            {
                 throw new ApiException($"Event Not Found.");
-            }
 
-            if (eventItem.ClubId.HasValue)
-            {
-                if (!await _clubRepository.HasPrivilegeInClubAsync(eventItem.ClubId.Value, _authenticatedUserService.UserId, "Manage Events"))
-                    throw new ApiException("You do not have permission to update events in this club.");
-            }
+            await EventManagementPermissions.EnsureCanManageEventAsync(eventItem, _authenticatedUserService.UserId, _clubRepository);
 
             eventItem.Title = request.Title;
             eventItem.Description = request.Description;
@@ -66,7 +65,7 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
             eventItem.RequireApproval = request.RequireApproval;
             eventItem.Tags = request.Tags;
 
-            await _eventRepository.UpdateAsync(eventItem);
+            await _context.SaveChangesAsync(cancellationToken);
             return new Response<int>(eventItem.Id);
         }
     }

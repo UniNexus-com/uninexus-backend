@@ -7,6 +7,7 @@ using CleanArchitecture.Core.Features.Inventory.Queries.GetInventory;
 using CleanArchitecture.Core.Features.Inventory.Queries.GetMyBorrowedAssets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -58,10 +59,13 @@ namespace CleanArchitecture.WebApi.Controllers
         public async Task<IActionResult> Delete(int id)
             => Ok(await Mediator.Send(new DeleteInventoryItemCommand { Id = id }));
 
-        /// <summary>POST /v1/Assets/{id}/borrow — QR ile ekipman ödünç al</summary>
+        /// <summary>POST /v1/Assets/{id}/borrow — QR ile ekipman ödünç al (body opsiyonel; sadece başkası adına alırken UserId gerekir).</summary>
         [HttpPost("{id}/borrow")]
-        public async Task<IActionResult> Borrow(int id, [FromBody] BorrowAssetCommand command)
+        public async Task<IActionResult> Borrow(
+            int id,
+            [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] BorrowAssetCommand command)
         {
+            command ??= new BorrowAssetCommand();
             command.AssetId = id;
             return Ok(await Mediator.Send(command));
         }

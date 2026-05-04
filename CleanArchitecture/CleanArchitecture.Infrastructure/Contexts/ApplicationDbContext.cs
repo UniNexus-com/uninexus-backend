@@ -17,6 +17,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<EventClub> EventClubs { get; set; }
         public DbSet<Club> Clubs { get; set; }
         public DbSet<ClubRole> ClubRoles { get; set; }
         public DbSet<ClubPrivilege> ClubPrivileges { get; set; }
@@ -184,7 +185,6 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.EndDate).HasColumnName("end_date").IsRequired();
                 entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(200);
                 entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
-                entity.Property(e => e.ClubId).HasColumnName("club_id");
                 entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(50);
                 entity.Property(e => e.Visibility).HasColumnName("visibility").HasMaxLength(50).HasDefaultValue("All Students");
                 entity.Property(e => e.Capacity).HasColumnName("capacity");
@@ -192,16 +192,31 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.RequireApproval).HasColumnName("require_approval").HasDefaultValue(false);
                 entity.Property(e => e.Tags).HasColumnName("tags").HasMaxLength(500);
 
-                entity.HasOne(e => e.Club)
-                    .WithMany(c => c.Events)
-                    .HasForeignKey(e => e.ClubId)
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.SetNull);
-
                 entity.HasIndex(e => e.StartDate);
                 entity.HasIndex(e => e.Category);
                 entity.HasIndex(e => e.IsActive);
                 entity.HasIndex(e => e.Title);
+            });
+
+            builder.Entity<EventClub>(entity =>
+            {
+                entity.ToTable(name: "event_clubs");
+                entity.HasKey(e => new { e.EventId, e.ClubId });
+                entity.Property(e => e.EventId).HasColumnName("event_id");
+                entity.Property(e => e.ClubId).HasColumnName("club_id");
+                entity.Property(e => e.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+
+                entity.HasOne(ec => ec.Event)
+                    .WithMany(e => e.EventClubs)
+                    .HasForeignKey(ec => ec.EventId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ec => ec.Club)
+                    .WithMany(c => c.EventHostingLinks)
+                    .HasForeignKey(ec => ec.ClubId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => e.ClubId);
             });
             
             // -- Club Roles -----

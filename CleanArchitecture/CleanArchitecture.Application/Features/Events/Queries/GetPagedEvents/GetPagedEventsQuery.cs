@@ -1,7 +1,11 @@
+using AutoMapper;
 using CleanArchitecture.Core.DTOs.Event;
+using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Features.Events.Common;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,21 +29,32 @@ namespace CleanArchitecture.Core.Features.Events.Queries.GetPagedEvents
     public class GetPagedEventsQueryHandler : IRequestHandler<GetPagedEventsQuery, PagedResponse<EventViewModel>>
     {
         private readonly IApplicationDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public GetPagedEventsQueryHandler(IApplicationDbContext context)
+        public GetPagedEventsQueryHandler(
+            IApplicationDbContext context,
+            IMapper mapper,
+            IAuthenticatedUserService authenticatedUserService,
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _mapper = mapper;
+            _authenticatedUserService = authenticatedUserService;
+            _userManager = userManager;
         }
 
         public async Task<PagedResponse<EventViewModel>> Handle(GetPagedEventsQuery request, CancellationToken cancellationToken)
         {
             var query = _context.Events
-                .Include(e => e.Club)
+                .Include(e => e.EventClubs)
+                .ThenInclude(ec => ec.Club)
                 .AsNoTracking()
                 .AsQueryable();
 
             if (request.ClubId.HasValue)
-                query = query.Where(e => e.ClubId == request.ClubId.Value);
+                query = query.Where(e => e.EventClubs.Any(ec => ec.ClubId == request.ClubId.Value));
 
             if (!string.IsNullOrEmpty(request.Category))
                 query = query.Where(e => e.Category == request.Category);
@@ -53,41 +68,45 @@ namespace CleanArchitecture.Core.Features.Events.Queries.GetPagedEvents
                 query = query.Where(e =>
                     EF.Functions.ILike(e.Title, search) ||
                     (e.Location != null && EF.Functions.ILike(e.Location, search)) ||
-                    (e.Club != null && EF.Functions.ILike(e.Club.Name, search)));
+                    e.EventClubs.Any(ec => ec.Club != null && EF.Functions.ILike(ec.Club.Name, search)));
             }
+
+            // Visibility filter — kullanıcının göremeyeceği etkinlikleri sayım dahil hiçbir yerde sızdırma
+            query = await EventVisibilityFilter.ApplyAsync(
+                query, _context, _userManager, _authenticatedUserService.UserId, cancellationToken);
 
             var totalCount = await query.CountAsync(cancellationToken);
 
             query = request.SortBy?.ToLower() switch
             {
-                "title"    => request.IsDescending ? query.OrderByDescending(e => e.Title) : query.OrderBy(e => e.Title),
+                "title" => request.IsDescending ? query.OrderByDescending(e => e.Title) : query.OrderBy(e => e.Title),
                 "location" => request.IsDescending ? query.OrderByDescending(e => e.Location) : query.OrderBy(e => e.Location),
-                "clubname" => request.IsDescending ? query.OrderByDescending(e => e.Club.Name) : query.OrderBy(e => e.Club.Name),
-                "enddate"  => request.IsDescending ? query.OrderByDescending(e => e.EndDate) : query.OrderBy(e => e.EndDate),
-                _          => request.IsDescending ? query.OrderByDescending(e => e.StartDate) : query.OrderBy(e => e.StartDate)
+                "clubname" => request.IsDescending
+                    ? query.OrderByDescending(e => e.EventClubs.OrderBy(ec => ec.SortOrder).Select(ec => ec.Club.Name).FirstOrDefault())
+                    : query.OrderBy(e => e.EventClubs.OrderBy(ec => ec.SortOrder).Select(ec => ec.Club.Name).FirstOrDefault()),
+                "enddate" => request.IsDescending ? query.OrderByDescending(e => e.EndDate) : query.OrderBy(e => e.EndDate),
+                _ => request.IsDescending ? query.OrderByDescending(e => e.StartDate) : query.OrderBy(e => e.StartDate)
             };
 
-            var data = await query
+            var items = await query
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .Select(e => new EventViewModel
-                {
-                    Id             = e.Id,
-                    Title          = e.Title,
-                    Description    = e.Description,
-                    StartDate      = e.StartDate,
-                    EndDate        = e.EndDate,
-                    Location       = e.Location,
-                    IsActive       = e.IsActive,
-                    Category       = e.Category,
-                    Visibility     = e.Visibility,
-                    Capacity       = e.Capacity,
-                    Requirements   = e.Requirements,
-                    RequireApproval = e.RequireApproval,
-                    ClubId         = e.ClubId,
-                    ClubName       = e.Club != null ? e.Club.Name : null
-                })
                 .ToListAsync(cancellationToken);
+
+            var data = _mapper.Map<List<EventViewModel>>(items);
+
+            var userId = _authenticatedUserService.UserId;
+            if (!string.IsNullOrEmpty(userId) && data.Count > 0)
+            {
+                var ids = data.Select(v => v.Id).ToList();
+                var registeredIds = await _context.EventAttendees
+                    .Where(a => a.UserId == userId && ids.Contains(a.EventId))
+                    .Select(a => a.EventId)
+                    .ToListAsync(cancellationToken);
+                var registeredSet = new HashSet<int>(registeredIds);
+                foreach (var vm in data)
+                    vm.IsRegistered = registeredSet.Contains(vm.Id);
+            }
 
             return new PagedResponse<EventViewModel>(data, request.PageNumber, request.PageSize, totalCount);
         }

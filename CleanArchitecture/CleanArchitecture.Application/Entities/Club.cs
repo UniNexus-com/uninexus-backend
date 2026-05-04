@@ -12,7 +12,7 @@ namespace CleanArchitecture.Core.Entities
         public string Status { get; set; } = "ACTIVE"; // "ACTIVE" | "PENDING" | "CLOSED"
         public decimal? TotalBudget { get; set; }
 
-        public ICollection<Event> Events { get; set; } = new List<Event>();
+        public ICollection<EventClub> EventHostingLinks { get; set; } = new List<EventClub>();
         public ICollection<UserClub> UserClubs { get; set; } = new List<UserClub>();
         public ICollection<ClubRole> CustomRoles { get; set; } = new List<ClubRole>();
         public ICollection<ClubJoinRequest> JoinRequests { get; set; } = new List<ClubJoinRequest>();

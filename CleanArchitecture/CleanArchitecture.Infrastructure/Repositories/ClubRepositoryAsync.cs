@@ -307,7 +307,7 @@ namespace CleanArchitecture.Infrastructure.Repository
             // Fetch activities (attendance history)
             var activities = await _dbContext.EventAttendees
                 .Include(ea => ea.Event)
-                .Where(ea => ea.UserId == userId && ea.Event.ClubId == clubId)
+                .Where(ea => ea.UserId == userId && ea.Event.EventClubs.Any(ec => ec.ClubId == clubId))
                 .OrderByDescending(ea => ea.Event.StartDate)
                 .Select(ea => new MemberActivityDto
                 {
@@ -322,10 +322,10 @@ namespace CleanArchitecture.Infrastructure.Repository
 
             // Calculate stats
             var totalAttended = await _dbContext.EventAttendees
-                .CountAsync(ea => ea.UserId == userId && ea.Event.ClubId == clubId && ea.Status == "Attended");
+                .CountAsync(ea => ea.UserId == userId && ea.Event.EventClubs.Any(ec => ec.ClubId == clubId) && ea.Status == "Attended");
             
             var totalRegistered = await _dbContext.EventAttendees
-                .CountAsync(ea => ea.UserId == userId && ea.Event.ClubId == clubId);
+                .CountAsync(ea => ea.UserId == userId && ea.Event.EventClubs.Any(ec => ec.ClubId == clubId));
 
             var reliability = totalRegistered > 0 ? (double)totalAttended / totalRegistered * 100 : 0;
 
@@ -363,7 +363,7 @@ namespace CleanArchitecture.Infrastructure.Repository
                 .ToListAsync();
 
             var events = await _dbContext.Events
-                .Where(e => e.ClubId == clubId && e.IsActive)
+                .Where(e => e.EventClubs.Any(ec => ec.ClubId == clubId) && e.IsActive)
                 .OrderBy(e => e.Created)
                 .Select(e => new { e.Created })
                 .ToListAsync();
@@ -417,7 +417,7 @@ namespace CleanArchitecture.Infrastructure.Repository
             var stats = new ClubStatsDto
             {
                 TotalMembers = await _userClubs.CountAsync(uc => uc.ClubId == clubId),
-                UpcomingEventsCount = await _dbContext.Events.CountAsync(e => e.ClubId == clubId && e.StartDate > now && e.IsActive),
+                UpcomingEventsCount = await _dbContext.Events.CountAsync(e => e.EventClubs.Any(ec => ec.ClubId == clubId) && e.StartDate > now && e.IsActive),
                 TotalBudget = club.TotalBudget ?? 0
             };
 
@@ -447,7 +447,7 @@ namespace CleanArchitecture.Infrastructure.Repository
 
             // 2. Events Created (Audit field 'Created' from AuditableBaseEntity)
             var eventsCreated = await _dbContext.Events
-                .Where(e => e.ClubId == clubId && e.Created >= oneYearAgo)
+                .Where(e => e.EventClubs.Any(ec => ec.ClubId == clubId) && e.Created >= oneYearAgo)
                 .Select(e => new ActivityPointDto
                 {
                     Date = e.Created.Date,
@@ -461,7 +461,7 @@ namespace CleanArchitecture.Infrastructure.Repository
             // 3. Attendance
             var attendances = await _dbContext.EventAttendees
                 .Include(ea => ea.Event)
-                .Where(ea => ea.Event.ClubId == clubId && ea.Created >= oneYearAgo && ea.Status == "Attended")
+                .Where(ea => ea.Event.EventClubs.Any(ec => ec.ClubId == clubId) && ea.Created >= oneYearAgo && ea.Status == "Attended")
                 .Select(ea => new ActivityPointDto
                 {
                     Date = ea.Created.Date,

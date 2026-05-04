@@ -142,11 +142,17 @@ namespace CleanArchitecture.Infrastructure.Repository
                 .OrderByDescending(l => l.BorrowedAt)
                 .ToListAsync();
 
-            var result = new List<AssetViewModel>();
+            var user = await _users.FindAsync(userId);
+            var now = DateTime.UtcNow;
+            var result = new List<AssetViewModel>(loans.Count);
+
             foreach (var loan in loans)
             {
                 var asset = loan.Asset;
-                var user = await _users.FindAsync(userId);
+                if (asset == null)
+                    continue;
+
+                var isOverdue = loan.DueDate < now && loan.ReturnedAt == null;
 
                 result.Add(new AssetViewModel
                 {
@@ -162,7 +168,11 @@ namespace CleanArchitecture.Infrastructure.Repository
                     ClubId = asset.ClubId,
                     ClubName = asset.Club?.Name,
                     LoanedBy = user?.FullName,
-                    LoanedByUserId = userId
+                    LoanedByUserId = userId,
+                    BorrowedAt = loan.BorrowedAt,
+                    DueDate = loan.DueDate,
+                    IsOverdue = isOverdue,
+                    LoanStatus = isOverdue ? "Overdue" : loan.Status
                 });
             }
 

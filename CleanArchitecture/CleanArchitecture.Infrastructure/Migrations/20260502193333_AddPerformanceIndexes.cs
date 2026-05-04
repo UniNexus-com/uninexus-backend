@@ -10,72 +10,23 @@ namespace CleanArchitecture.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Enable pg_trgm extension for fast ILIKE '%x%' text search on indexed columns
             migrationBuilder.Sql("CREATE EXTENSION IF NOT EXISTS pg_trgm;");
 
-            migrationBuilder.AddColumn<string>(
-                name: "category",
-                table: "clubs",
-                type: "character varying(50)",
-                maxLength: 50,
-                nullable: true);
+            // Veritabanı şema zaten güncellenmiş olabilir; idempotent DDL.
+            migrationBuilder.Sql(@"ALTER TABLE clubs ADD COLUMN IF NOT EXISTS category character varying(50);");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_events_category",
-                table: "events",
-                column: "category");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_events_category"" ON events (category);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_events_is_active"" ON events (is_active);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_events_start_date"" ON events (start_date);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_clubs_category"" ON clubs (category);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_clubs_status"" ON clubs (status);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_budget_requests_created"" ON budget_requests (created);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_budget_requests_status"" ON budget_requests (status);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_budget_requests_status_created"" ON budget_requests (status, created);");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_Announcements_ClubId"" ON ""Announcements"" (""ClubId"");");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_Announcements_ClubId_Created"" ON ""Announcements"" (""ClubId"", ""Created"");");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_Announcements_Created"" ON ""Announcements"" (""Created"");");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_events_is_active",
-                table: "events",
-                column: "is_active");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_events_start_date",
-                table: "events",
-                column: "start_date");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_clubs_category",
-                table: "clubs",
-                column: "category");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_clubs_status",
-                table: "clubs",
-                column: "status");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_budget_requests_created",
-                table: "budget_requests",
-                column: "created");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_budget_requests_status",
-                table: "budget_requests",
-                column: "status");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_budget_requests_status_created",
-                table: "budget_requests",
-                columns: new[] { "status", "created" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Announcements_ClubId",
-                table: "Announcements",
-                column: "ClubId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Announcements_ClubId_Created",
-                table: "Announcements",
-                columns: new[] { "ClubId", "Created" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Announcements_Created",
-                table: "Announcements",
-                column: "Created");
-
-            // GIN trigram indexes for fast ILIKE '%x%' text search
             migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS IX_clubs_name_trgm ON clubs USING gin (name gin_trgm_ops);");
             migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS IX_events_title_trgm ON events USING gin (title gin_trgm_ops);");
             migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS IX_budget_requests_title_trgm ON budget_requests USING gin (title gin_trgm_ops);");
@@ -85,53 +36,19 @@ namespace CleanArchitecture.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_events_category",
-                table: "events");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_events_category"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_events_is_active"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_events_start_date"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_clubs_category"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_clubs_status"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_budget_requests_created"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_budget_requests_status"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_budget_requests_status_created"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_Announcements_ClubId"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_Announcements_ClubId_Created"";");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_Announcements_Created"";");
 
-            migrationBuilder.DropIndex(
-                name: "IX_events_is_active",
-                table: "events");
-
-            migrationBuilder.DropIndex(
-                name: "IX_events_start_date",
-                table: "events");
-
-            migrationBuilder.DropIndex(
-                name: "IX_clubs_category",
-                table: "clubs");
-
-            migrationBuilder.DropIndex(
-                name: "IX_clubs_status",
-                table: "clubs");
-
-            migrationBuilder.DropIndex(
-                name: "IX_budget_requests_created",
-                table: "budget_requests");
-
-            migrationBuilder.DropIndex(
-                name: "IX_budget_requests_status",
-                table: "budget_requests");
-
-            migrationBuilder.DropIndex(
-                name: "IX_budget_requests_status_created",
-                table: "budget_requests");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Announcements_ClubId",
-                table: "Announcements");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Announcements_ClubId_Created",
-                table: "Announcements");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Announcements_Created",
-                table: "Announcements");
-
-            migrationBuilder.DropColumn(
-                name: "category",
-                table: "clubs");
+            migrationBuilder.Sql(@"ALTER TABLE clubs DROP COLUMN IF EXISTS category;");
 
             migrationBuilder.Sql("DROP INDEX IF EXISTS IX_clubs_name_trgm;");
             migrationBuilder.Sql("DROP INDEX IF EXISTS IX_events_title_trgm;");

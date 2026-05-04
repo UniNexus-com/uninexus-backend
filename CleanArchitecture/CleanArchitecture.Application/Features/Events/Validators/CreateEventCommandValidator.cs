@@ -1,12 +1,10 @@
-﻿using CleanArchitecture.Core.Features.Events.Commands.CreateEvent;
-using CleanArchitecture.Core.Interfaces;
-using FluentValidation;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CleanArchitecture.Core.Interfaces;
+using CleanArchitecture.Core.Features.Events.Commands.CreateEvent;
+using FluentValidation;
 
 namespace CleanArchitecture.Core.Features.Events.Validators
 {
@@ -18,17 +16,33 @@ namespace CleanArchitecture.Core.Features.Events.Validators
         {
             _clubRepository = clubRepository;
 
-            When(p => p.ClubId.HasValue, () =>
-            {
-                RuleFor(p => p.ClubId.Value)
-                    .MustAsync(BeActiveClub)
-                    .WithMessage("This club is currently suspended or closed. You cannot create events.");
-            });
+            RuleFor(x => x)
+                .MustAsync(AllReferencedClubsMustBeActive)
+                .WithMessage("Bu etkinlik için seçilen kulüplerden biri kapalı veya uygun değil.");
         }
 
-        private async Task<bool> BeActiveClub(int clubId, CancellationToken cancellationToken)
+        private async Task<bool> AllReferencedClubsMustBeActive(CreateEventCommand cmd, CancellationToken cancellationToken)
         {
-            return await _clubRepository.IsClubActiveAsync(clubId);
+            foreach (var id in MergeHostClubReferences(cmd))
+            {
+                if (!await _clubRepository.IsClubActiveAsync(id))
+                    return false;
+            }
+            return true;
+        }
+
+        private static IEnumerable<int> MergeHostClubReferences(CreateEventCommand cmd)
+        {
+            var list = new List<int>();
+            if (cmd.HostClubIds != null)
+            {
+                foreach (var id in cmd.HostClubIds)
+                    if (!list.Contains(id))
+                        list.Add(id);
+            }
+            if (cmd.ClubId.HasValue && !list.Contains(cmd.ClubId.Value))
+                list.Add(cmd.ClubId.Value);
+            return list;
         }
     }
 }
