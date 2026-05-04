@@ -1,12 +1,8 @@
-﻿using CleanArchitecture.Core.DTOs.Transcript;
+using CleanArchitecture.Core.DTOs.Transcript;
 using QuestPDF.Infrastructure;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CleanArchitecture.Core.Helpers
 {
@@ -17,48 +13,128 @@ namespace CleanArchitecture.Core.Helpers
             // QuestPDF Lisans Ayarı (Community/Open Source için zorunlu)
             QuestPDF.Settings.License = LicenseType.Community;
 
+            var primaryColor = "#FF6B00"; // UniNexus Orange
+            var secondaryColor = "#1E3A8A"; // Dark Blue
+            var lightGray = "#F9FAFB";
+            var darkText = "#1F2937";
+            var mutedText = "#6B7280";
+
             return Document.Create(container =>
             {
                 container.Page(page =>
                 {
-                    page.Margin(50);
-                    page.Header().Text("UniNexus - Co-Curricular Transcript").FontSize(20).SemiBold().FontColor(Colors.Blue.Medium);
+                    page.Size(PageSizes.A4);
+                    page.Margin(0);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(11).FontColor(darkText).FontFamily(Fonts.Arial));
 
-                    page.Content().PaddingVertical(20).Column(col =>
+                    // Header
+                    page.Header().Background(Colors.White).Padding(30).BorderBottom(3).BorderColor(primaryColor).Row(row =>
                     {
-                        col.Item().Text($"Öğrenci: {data.StudentName}").FontSize(14);
-                        col.Item().Text($"Öğrenci Numarası: {data.StudentNumber}").FontSize(14);
-                        col.Item().Text($"Toplam Puan: {data.TotalPoints}").FontSize(14).Bold();
+                        try 
+                        {
+                            row.ConstantItem(160).AlignMiddle().Image(@"G:\UniNexus\Architecture\uninexus-frontend\public\admin_logo.png");
+                        }
+                        catch
+                        {
+                            row.ConstantItem(160).AlignMiddle().Text("UniNexus").FontSize(32).FontColor(secondaryColor).SemiBold();
+                        }
 
-                        col.Item().PaddingTop(20).Table(table =>
+                        row.RelativeItem().PaddingLeft(20).AlignMiddle().Column(col =>
+                        {
+                            col.Item().Text("CO-CURRICULAR TRANSCRIPT").FontSize(16).FontColor(secondaryColor).Bold();
+                            col.Item().Text("Official Student Record").FontSize(10).FontColor(mutedText);
+                        });
+
+                        row.ConstantItem(100).AlignRight().AlignMiddle().Text("OFFICIAL\nDOCUMENT")
+                            .FontSize(10).FontColor(primaryColor).LineHeight(1.2f).SemiBold();
+                    });
+
+                    // Content
+                    page.Content().Padding(40).Column(col =>
+                    {
+                        // Student Info Card
+                        col.Item().Background(lightGray).Border(1).BorderColor("#E5E7EB").Padding(20).Row(row =>
+                        {
+                            row.RelativeItem().Column(infoCol =>
+                            {
+                                infoCol.Item().Text("STUDENT DETAILS").FontSize(10).FontColor(mutedText).Bold();
+                                infoCol.Item().PaddingTop(5).Text(data.StudentName).FontSize(18).SemiBold().FontColor(secondaryColor);
+                                infoCol.Item().PaddingTop(2).Text($"Student ID: {data.StudentNumber}").FontSize(12).FontColor(darkText);
+                            });
+
+                            row.ConstantItem(150).AlignRight().Column(scoreCol =>
+                            {
+                                scoreCol.Item().AlignRight().Text("TOTAL SCORE").FontSize(10).FontColor(mutedText).Bold();
+                                scoreCol.Item().PaddingTop(2).AlignRight().Text($"{data.TotalPoints} NC").FontSize(24).Bold().FontColor(primaryColor);
+                            });
+                        });
+
+                        col.Item().PaddingTop(30).Text("ACTIVITY HISTORY").FontSize(14).FontColor(secondaryColor).Bold();
+                        
+                        col.Item().PaddingTop(10).Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.RelativeColumn(3);
-                                columns.RelativeColumn(1);
+                                columns.RelativeColumn(4);
+                                columns.RelativeColumn(2);
                                 columns.RelativeColumn(1);
                             });
 
+                            // Table Header
                             table.Header(header =>
                             {
-                                header.Cell().Text("Etkinlik Adı").Bold();
-                                header.Cell().Text("Tarih").Bold();
-                                header.Cell().Text("Puan").Bold();
+                                header.Cell().Background(secondaryColor).Padding(8).Text("Event Name").FontColor(Colors.White).SemiBold();
+                                header.Cell().Background(secondaryColor).Padding(8).AlignCenter().Text("Date").FontColor(Colors.White).SemiBold();
+                                header.Cell().Background(secondaryColor).Padding(8).AlignRight().Text("Points").FontColor(Colors.White).SemiBold();
                             });
 
+                            // Table Body
+                            var rowIndex = 0;
                             foreach (var item in data.Activities)
                             {
-                                table.Cell().Text(item.EventName);
-                                table.Cell().Text(item.Date);
-                                table.Cell().Text(item.Points.ToString());
+                                var bgColor = rowIndex % 2 == 0 ? "#FFFFFF" : lightGray;
+                                var borderColor = "#E5E7EB";
+
+                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().Text(item.EventName).FontSize(10);
+                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().AlignCenter().Text(item.Date).FontSize(10);
+                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().AlignRight().Text($"+{item.Points}").FontSize(10).Bold().FontColor(primaryColor);
+                                
+                                rowIndex++;
                             }
+                        });
+
+                        // Signatures & Formalities
+                        col.Item().PaddingTop(60).Row(row =>
+                        {
+                            row.RelativeItem().Column(signCol =>
+                            {
+                                signCol.Item().LineHorizontal(1).LineColor("#D1D5DB");
+                                signCol.Item().PaddingTop(5).AlignCenter().Text("Student Sign").FontSize(10).FontColor(mutedText);
+                            });
+
+                            row.ConstantItem(50); // spacer
+
+                            row.RelativeItem().Column(signCol =>
+                            {
+                                signCol.Item().LineHorizontal(1).LineColor("#D1D5DB");
+                                signCol.Item().PaddingTop(5).AlignCenter().Text("SKS Department Approval").FontSize(10).FontColor(mutedText);
+                                signCol.Item().AlignCenter().Text("Health, Culture and Sports Dept.").FontSize(8).FontColor(mutedText);
+                            });
                         });
                     });
 
-                    page.Footer().AlignCenter().Text(x =>
+                    // Footer
+                    page.Footer().Background("#111827").PaddingVertical(10).PaddingHorizontal(40).Row(row =>
                     {
-                        x.Span("Sayfa ");
-                        x.CurrentPageNumber();
+                        row.RelativeItem().Text($"Generated on: {DateTime.UtcNow:dd MMM yyyy HH:mm} UTC").FontSize(8).FontColor("#9CA3AF");
+                        row.RelativeItem().AlignRight().Text(x =>
+                        {
+                            x.Span("Page ").FontSize(8).FontColor("#9CA3AF");
+                            x.CurrentPageNumber().FontSize(8).FontColor("#9CA3AF");
+                            x.Span(" of ").FontSize(8).FontColor("#9CA3AF");
+                            x.TotalPages().FontSize(8).FontColor("#9CA3AF");
+                        });
                     });
                 });
             }).GeneratePdf();

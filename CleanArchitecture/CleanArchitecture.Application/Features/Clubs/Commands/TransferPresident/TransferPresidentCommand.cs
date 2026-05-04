@@ -1,3 +1,4 @@
+using CleanArchitecture.Core.Entities;
 using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
@@ -49,6 +50,14 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.TransferPresident
 
             newPresidentMembership.ClubRoleId = presidentRole.Id;
             _dbContext.UserClubs.Update(newPresidentMembership);
+
+            var newPresidentUser = await _dbContext.Set<ApplicationUser>().FindAsync(new object[] { request.NewPresidentUserId }, cancellationToken);
+            if (newPresidentUser != null)
+            {
+                newPresidentUser.ScoreWalletBalance += 1000;
+                newPresidentUser.TotalScore += 1000;
+                _dbContext.Set<ApplicationUser>().Update(newPresidentUser);
+            }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 

@@ -78,6 +78,14 @@ namespace CleanArchitecture.Core.Features.Inventory.Commands.BorrowAsset
 
             await _context.AssetLoans.AddAsync(loan, cancellationToken);
 
+            var loanUser = await _context.Set<ApplicationUser>().FindAsync(new object[] { userId }, cancellationToken);
+            if (loanUser != null)
+            {
+                loanUser.ScoreWalletBalance += 50;
+                loanUser.TotalScore += 50;
+                _context.Set<ApplicationUser>().Update(loanUser);
+            }
+
             // 4. Update asset status
             asset.Status = "ON_LOAN";
             _context.Assets.Update(asset);

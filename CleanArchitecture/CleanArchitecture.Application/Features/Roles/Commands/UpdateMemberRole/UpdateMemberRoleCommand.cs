@@ -59,6 +59,24 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole
 
             membership.ClubRoleId = request.RoleId;
 
+            int pointsAwarded = 0;
+            if (targetRole != null)
+            {
+                if (targetRole.Name == "Vice President") pointsAwarded = 800;
+                else if (targetRole.Name != "Active Member" && targetRole.Name != "Member") pointsAwarded = 500;
+            }
+
+            if (pointsAwarded > 0)
+            {
+                var roleUser = await _dbContext.Set<ApplicationUser>().FindAsync(new object[] { request.UserId }, cancellationToken);
+                if (roleUser != null)
+                {
+                    roleUser.ScoreWalletBalance += pointsAwarded;
+                    roleUser.TotalScore += pointsAwarded;
+                    _dbContext.Set<ApplicationUser>().Update(roleUser);
+                }
+            }
+
             _dbContext.UserClubs.Update(membership);
             var rowsAffected = await _dbContext.SaveChangesAsync(cancellationToken);
 

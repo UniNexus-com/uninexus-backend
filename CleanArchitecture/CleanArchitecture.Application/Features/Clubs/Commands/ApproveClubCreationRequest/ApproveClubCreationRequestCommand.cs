@@ -88,6 +88,14 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.ApproveClubCreationRequ
             creationRequest.Status = "APPROVED";
             _context.ClubCreationRequests.Update(creationRequest);
 
+            var creatorUser = await _context.Set<ApplicationUser>().FindAsync(new object[] { creationRequest.RequesterUserId }, cancellationToken);
+            if (creatorUser != null)
+            {
+                creatorUser.ScoreWalletBalance += 1000;
+                creatorUser.TotalScore += 1000;
+                _context.Set<ApplicationUser>().Update(creatorUser);
+            }
+
             // 6. Club-internal announcement
             await _context.Announcements.AddAsync(new Announcement
             {

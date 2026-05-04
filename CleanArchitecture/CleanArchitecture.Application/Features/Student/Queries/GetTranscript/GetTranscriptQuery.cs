@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Core.DTOs.Transcript;
+using CleanArchitecture.Core.DTOs.Transcript;
 using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Core.Wrappers;
 using MediatR;
@@ -32,9 +32,9 @@ namespace CleanArchitecture.Core.Features.Student.Queries.GetTranscript
                 .Where(x => x.Id == request.UserId)
                 .Select(u => new TranscriptResponse
                 {
-                    StudentName = u.UserName,
+                    StudentName = string.IsNullOrEmpty(u.FullName) ? u.UserName : u.FullName,
                     StudentNumber = u.StudentNumber,
-                    TotalPoints = u.ScoreWalletBalance,
+                    TotalPoints = u.TotalScore,
                     Activities = _context.EventAttendees
                         .Where(a => a.UserId == u.Id)
                         .Include(a => a.Event)

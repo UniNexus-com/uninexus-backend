@@ -20,15 +20,18 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.AcceptJoinRequest
         private readonly IClubRepositoryAsync _clubRepository;
         private readonly IGenericRepositoryAsync<UserClub> _userClubRepository;
         private readonly IAuthenticatedUserService _authenticatedUserService;
+        private readonly IApplicationDbContext _context;
 
         public AcceptJoinRequestCommandHandler(
             IClubRepositoryAsync clubRepository, 
             IGenericRepositoryAsync<UserClub> userClubRepository,
-            IAuthenticatedUserService authenticatedUserService)
+            IAuthenticatedUserService authenticatedUserService,
+            IApplicationDbContext context)
         {
             _clubRepository = clubRepository;
             _userClubRepository = userClubRepository;
             _authenticatedUserService = authenticatedUserService;
+            _context = context;
         }
 
         public async Task<Response<int>> Handle(AcceptJoinRequestCommand request, CancellationToken cancellationToken)
@@ -61,6 +64,15 @@ namespace CleanArchitecture.Core.Features.Clubs.Commands.AcceptJoinRequest
                 // club_role_id will be set by the DB trigger
             };
             await _userClubRepository.AddAsync(userClub);
+
+            var user = await _context.Set<ApplicationUser>().FindAsync(new object[] { joinRequest.UserId }, cancellationToken);
+            if (user != null)
+            {
+                user.ScoreWalletBalance += 350;
+                user.TotalScore += 350;
+                _context.Set<ApplicationUser>().Update(user);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
 
             return new Response<int>(joinRequest.Id, "Member accepted successfully.");
         }
