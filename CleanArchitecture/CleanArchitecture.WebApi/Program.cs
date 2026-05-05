@@ -67,6 +67,7 @@ else
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+app.UseStaticFiles();
 app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
