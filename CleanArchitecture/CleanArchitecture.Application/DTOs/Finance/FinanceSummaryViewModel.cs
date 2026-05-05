@@ -7,5 +7,6 @@ namespace CleanArchitecture.Core.DTOs.Finance
         public decimal TotalBudget { get; set; }
         public decimal TotalRequestedAmount { get; set; }
         public decimal TotalApprovedAmount { get; set; }
+        public List<BudgetRequestViewModel> Requests { get; set; } = new();
     }
 }

@@ -57,11 +57,16 @@ namespace CleanArchitecture.Core.Features.Finance.Queries.GetFinanceSummary
                 totalBudget = club?.TotalBudget ?? 0;
             }
 
+            var requests = await query
+                .OrderByDescending(r => r.Created)
+                .ToListAsync(cancellationToken);
+
             var summary = new FinanceSummaryViewModel
             {
                 TotalBudget = totalBudget,
                 TotalRequestedAmount = await query.Where(r => r.Status == "PENDING").SumAsync(r => r.Amount, cancellationToken),
-                TotalApprovedAmount = await query.Where(r => r.Status == "APPROVED").SumAsync(r => r.Amount, cancellationToken)
+                TotalApprovedAmount = await query.Where(r => r.Status == "APPROVED").SumAsync(r => r.Amount, cancellationToken),
+                Requests = _mapper.Map<List<BudgetRequestViewModel>>(requests)
             };
 
             return new Response<FinanceSummaryViewModel>(summary);
