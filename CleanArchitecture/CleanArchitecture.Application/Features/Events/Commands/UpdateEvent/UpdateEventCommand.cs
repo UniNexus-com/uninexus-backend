@@ -18,6 +18,8 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Location { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public bool IsActive { get; set; }
         public string Category { get; set; }
         public string Visibility { get; set; }
@@ -25,6 +27,7 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
         public string Requirements { get; set; }
         public bool RequireApproval { get; set; }
         public string Tags { get; set; }
+        public string CoverImageUrl { get; set; }
     }
 
     public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Response<int>>
@@ -57,6 +60,8 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
             eventItem.StartDate = request.StartDate;
             eventItem.EndDate = request.EndDate;
             eventItem.Location = request.Location;
+            eventItem.Latitude = request.Latitude;
+            eventItem.Longitude = request.Longitude;
             eventItem.IsActive = request.IsActive;
             eventItem.Category = request.Category;
             eventItem.Visibility = request.Visibility;
@@ -64,6 +69,7 @@ namespace CleanArchitecture.Core.Features.Events.Commands.UpdateEvent
             eventItem.Requirements = request.Requirements;
             eventItem.RequireApproval = request.RequireApproval;
             eventItem.Tags = request.Tags;
+            eventItem.CoverImageUrl = request.CoverImageUrl;
 
             await _context.SaveChangesAsync(cancellationToken);
             return new Response<int>(eventItem.Id);

@@ -61,9 +61,14 @@ namespace CleanArchitecture.WebApi.Controllers
         }
 
         [HttpPost("{id}/checkin")]
-        public async Task<IActionResult> CheckIn(int id)
+        public async Task<IActionResult> CheckIn(int id, [FromQuery] double? latitude, [FromQuery] double? longitude)
         {
-            var command = new CheckInToEventCommand { EventId = id };
+            var command = new CheckInToEventCommand
+            {
+                EventId = id,
+                UserLatitude = latitude,
+                UserLongitude = longitude
+            };
             return Ok(await Mediator.Send(command));
         }
 
@@ -78,9 +83,15 @@ namespace CleanArchitecture.WebApi.Controllers
 
         /// <summary>POST /v1/Events/{id}/register — Etkinliğe kayıt ol</summary>
         [HttpPost("{id}/register")]
-        public async Task<IActionResult> Register(int id)
+        public async Task<IActionResult> Register(int id, [FromQuery] double? latitude, [FromQuery] double? longitude)
         {
-            return Ok(await Mediator.Send(new RegisterToEventCommand { EventId = id }));
+            var command = new RegisterToEventCommand
+            {
+                EventId = id,
+                UserLatitude = latitude,
+                UserLongitude = longitude
+            };
+            return Ok(await Mediator.Send(command));
         }
 
         /// <summary>PUT /v1/Events/{id}/attendees/{userId}/attendance — Klüp lideri katılım işaretle</summary>

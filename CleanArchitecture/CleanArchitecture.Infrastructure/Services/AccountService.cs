@@ -252,6 +252,25 @@ namespace CleanArchitecture.Infrastructure.Services
             return "Şifreniz başarıyla sıfırlandı.";
         }
 
+        // ── Change Password (authenticated user) ────────────────────
+        public async Task<string> ChangePasswordAsync(string userId, ChangePasswordRequest model)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) throw new ApiException("Kullanıcı bulunamadı.");
+
+            var checkResult = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+            if (!checkResult) throw new ApiException("Mevcut şifreniz hatalı.");
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new ApiException($"Şifre değiştirme başarısız: {errors}");
+            }
+
+            return "Şifreniz başarıyla değiştirildi.";
+        }
+
         // ── Private Helpers ───────────────────────────────────────────
         private async Task<JwtSecurityToken> GenerateJWToken(ApplicationUser user, IEnumerable<string> roles = null)
         {
@@ -666,6 +685,26 @@ namespace CleanArchitecture.Infrastructure.Services
                 .ToList();
 
             return new PagedResponse<UserAdminDto>(data, request.PageNumber, request.PageSize, totalCount);
+        }
+
+        public async Task<object> GetProfileAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return new
+            {
+                user.Id,
+                user.UserName,
+                user.FullName,
+                user.Email,
+                Roles = roles.ToList(),
+                user.ScoreWalletBalance,
+                user.TotalScore,
+                user.StudentNumber
+            };
         }
 
         private async Task<string> BuildConfirmEmailUri(ApplicationUser user, string origin)

@@ -18,6 +18,8 @@ namespace CleanArchitecture.Core.Features.Events.Commands.CreateEvent
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Location { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public bool IsActive { get; set; }
         /// <summary>Eski tek-kulüp API uyumluluğu; <see cref="HostClubIds"/> ile birleştirilir.</summary>
         public int? ClubId { get; set; }
@@ -29,6 +31,7 @@ namespace CleanArchitecture.Core.Features.Events.Commands.CreateEvent
         public string Requirements { get; set; }
         public bool RequireApproval { get; set; }
         public string Tags { get; set; }
+        public string CoverImageUrl { get; set; }
     }
 
     public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Response<int>>

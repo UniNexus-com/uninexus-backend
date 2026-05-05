@@ -191,6 +191,9 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.Requirements).HasColumnName("requirements");
                 entity.Property(e => e.RequireApproval).HasColumnName("require_approval").HasDefaultValue(false);
                 entity.Property(e => e.Tags).HasColumnName("tags").HasMaxLength(500);
+                entity.Property(e => e.CoverImageUrl).HasColumnName("cover_image_url").HasMaxLength(500);
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
 
                 entity.HasIndex(e => e.StartDate);
                 entity.HasIndex(e => e.Category);

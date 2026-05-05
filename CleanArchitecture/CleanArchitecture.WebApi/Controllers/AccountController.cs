@@ -1,5 +1,6 @@
 using CleanArchitecture.Core.DTOs.Account;
 using CleanArchitecture.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,17 @@ namespace CleanArchitecture.WebApi.Controllers
             SetRefreshTokenCookie(result.RefreshToken);
             result.RefreshToken = null; // Don't return the refresh token in the response body
             return Ok(result);
+        }
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfileAsync()
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var profile = await _accountService.GetProfileAsync(userId);
+            if (profile == null) return NotFound();
+            return Ok(profile);
         }
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
@@ -62,6 +74,17 @@ namespace CleanArchitecture.WebApi.Controllers
         {
 
             return Ok(await _accountService.ResetPasswordAsync(model));
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest model)
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _accountService.ChangePasswordAsync(userId, model);
+            return Ok(new { message = result });
         }
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshTokenAsync()

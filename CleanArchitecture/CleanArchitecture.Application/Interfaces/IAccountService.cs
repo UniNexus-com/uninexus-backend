@@ -17,6 +17,7 @@ namespace CleanArchitecture.Core.Interfaces
         Task LogoutAsync(string refreshToken, string ipAddress);
         Task ForgotPasswordAsync(ForgotPasswordRequest model, string origin);
         Task<string> ResetPasswordAsync(ResetPasswordRequest model);
+        Task<string> ChangePasswordAsync(string userId, ChangePasswordRequest model);
         Task<AuthenticationResponse> RefreshTokenAsync(string token, string ipAddress);
         Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds);
         Task<IEnumerable<UserAdminDto>> GetAllUsersAsync();
@@ -28,5 +29,6 @@ namespace CleanArchitecture.Core.Interfaces
         Task<List<LeaderboardUserDto>> GetClubLeaderboardAsync(int clubId, int limit = 10);
         Task<IEnumerable<UserAdminDto>> SearchUsersAsync(string query);
         Task<MemberDetailsDto> GetUserDetailsAsync(string userId);
+        Task<object> GetProfileAsync(string userId);
     }
 }
