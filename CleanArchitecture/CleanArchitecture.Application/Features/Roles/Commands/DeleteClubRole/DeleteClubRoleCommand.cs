@@ -37,7 +37,7 @@ namespace CleanArchitecture.Core.Features.Roles.Commands.DeleteClubRole
 
             if (role.ClubId.HasValue)
             {
-                if (!await _clubRepository.HasPrivilegeInClubAsync(role.ClubId.Value, _authenticatedUserService.UserId, "Manage Members"))
+                if (!await _clubRepository.HasPrivilegeInClubAsync(role.ClubId.Value, _authenticatedUserService.UserId, "Manage Roles"))
                     throw new ApiException("You do not have permission to manage roles in this club.");
             }
 

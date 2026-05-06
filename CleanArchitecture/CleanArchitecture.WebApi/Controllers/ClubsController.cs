@@ -18,6 +18,7 @@ using CleanArchitecture.Core.Features.Clubs.Queries.GetClubHistory;
 using CleanArchitecture.Core.Features.Clubs.Queries.GetPresidentClubs;
 using CleanArchitecture.Core.Features.Roles.Commands.CreateClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.DeleteClubRole;
+using CleanArchitecture.Core.Features.Roles.Commands.UpdateClubRole;
 using CleanArchitecture.Core.Features.Roles.Commands.UpdateMemberRole;
 using CleanArchitecture.Core.Features.Roles.Queries.GetClubPrivileges;
 using CleanArchitecture.Core.Features.Roles.Queries.GetClubRoles;
@@ -150,6 +151,14 @@ namespace CleanArchitecture.WebApi.Controllers
         [HttpDelete("{clubId}/roles/{roleId}")]
         public async Task<IActionResult> DeleteRole(int clubId, int roleId)
             => Ok(await Mediator.Send(new DeleteClubRoleCommand { Id = roleId }));
+
+        [HttpPut("{clubId}/roles/{roleId}")]
+        public async Task<IActionResult> UpdateRole(int clubId, int roleId, [FromBody] UpdateClubRoleCommand command)
+        {
+            command.Id = roleId;
+            command.ClubId = clubId;
+            return Ok(await Mediator.Send(command));
+        }
 
         [HttpPut("{clubId}/members/{userId}/role")]
         public async Task<IActionResult> UpdateMemberRole(int clubId, string userId, [FromBody] UpdateMemberRoleCommand command)
