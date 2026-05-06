@@ -76,6 +76,7 @@ namespace CleanArchitecture.Core.Helpers
                         {
                             table.ColumnsDefinition(columns =>
                             {
+                                columns.RelativeColumn(2);
                                 columns.RelativeColumn(4);
                                 columns.RelativeColumn(2);
                                 columns.RelativeColumn(1);
@@ -84,7 +85,8 @@ namespace CleanArchitecture.Core.Helpers
                             // Table Header
                             table.Header(header =>
                             {
-                                header.Cell().Background(secondaryColor).Padding(8).Text("Event Name").FontColor(Colors.White).SemiBold();
+                                header.Cell().Background(secondaryColor).Padding(8).Text("Category").FontColor(Colors.White).SemiBold();
+                                header.Cell().Background(secondaryColor).Padding(8).Text("Activity").FontColor(Colors.White).SemiBold();
                                 header.Cell().Background(secondaryColor).Padding(8).AlignCenter().Text("Date").FontColor(Colors.White).SemiBold();
                                 header.Cell().Background(secondaryColor).Padding(8).AlignRight().Text("Points").FontColor(Colors.White).SemiBold();
                             });
@@ -96,10 +98,23 @@ namespace CleanArchitecture.Core.Helpers
                                 var bgColor = rowIndex % 2 == 0 ? "#FFFFFF" : lightGray;
                                 var borderColor = "#E5E7EB";
 
-                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().Text(item.EventName).FontSize(10);
-                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().AlignCenter().Text(item.Date).FontSize(10);
-                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().AlignRight().Text($"+{item.Points}").FontSize(10).Bold().FontColor(primaryColor);
-                                
+                                var categoryColor = item.Category switch
+                                {
+                                    "Club" => "#7C3AED",
+                                    "Membership" => "#0891B2",
+                                    "Promotion" => "#059669",
+                                    _ => secondaryColor
+                                };
+
+                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle()
+                                    .Text(item.Category ?? "Event").FontSize(9).Bold().FontColor(categoryColor);
+                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle()
+                                    .Text(item.EventName).FontSize(10);
+                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().AlignCenter()
+                                    .Text(item.Date).FontSize(10);
+                                table.Cell().BorderBottom(1).BorderColor(borderColor).Background(bgColor).Padding(8).AlignMiddle().AlignRight()
+                                    .Text(item.Points > 0 ? $"+{item.Points}" : "—").FontSize(10).Bold().FontColor(item.Points > 0 ? primaryColor : mutedText);
+
                                 rowIndex++;
                             }
                         });

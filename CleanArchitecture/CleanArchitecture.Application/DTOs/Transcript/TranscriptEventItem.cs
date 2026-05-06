@@ -11,5 +11,6 @@ namespace CleanArchitecture.Core.DTOs.Transcript
         public string EventName { get; set; }
         public string Date { get; set; }
         public int Points { get; set; }
+        public string Category { get; set; } = "Event";
     }
 }
