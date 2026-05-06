@@ -61,19 +61,29 @@ namespace CleanArchitecture.Core.Features.Events.Commands.RegisterToEvent
             if (existing != null)
                 throw new ApiException("Bu etkinliğe zaten kayıt oldunuz.");
 
+            const int pointsToAward = 200;
+
+            var user = await _context.Set<ApplicationUser>().FindAsync(new object[] { userId }, cancellationToken);
+            if (user != null)
+            {
+                user.ScoreWalletBalance += pointsToAward;
+                user.TotalScore += pointsToAward;
+                _context.Set<ApplicationUser>().Update(user);
+            }
+
             var attendee = new EventAttendee
             {
                 EventId = request.EventId,
                 UserId = userId,
                 Status = "Registered",
-                PointsEarned = 0,
+                PointsEarned = pointsToAward,
                 CheckInTime = default(DateTime)
             };
 
             await _context.EventAttendees.AddAsync(attendee, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return new Response<string>(data: "Registered", message: "Etkinliğe başarıyla kayıt oldunuz.");
+            return new Response<string>(data: pointsToAward.ToString(), message: "Etkinliğe başarıyla kayıt oldunuz. 200 puan kazandınız!");
         }
 
         private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
