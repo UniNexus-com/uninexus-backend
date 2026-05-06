@@ -47,7 +47,11 @@ builder.Services.AddCors(options =>
                 var uri = new Uri(origin);
                 return uri.Host == "localhost"
                     || uri.Host == "127.0.0.1"
-                    || uri.Host == "10.0.2.2";
+                    || uri.Host == "10.0.2.2"
+                    || uri.Host == "172.20.10.7"
+                    // any RFC-1918 host (future IP changes)
+                    || System.Text.RegularExpressions.Regex.IsMatch(uri.Host,
+                        @"^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)");
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
