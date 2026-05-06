@@ -66,6 +66,9 @@ namespace CleanArchitecture.Infrastructure.Services
                 throw new ApiException($"Invalid Credentials for '{request.Email}'.");
 
 
+            if (!user.EmailConfirmed)
+                throw new ApiException("E-posta adresin henüz doğrulanmadı. Lütfen gelen kutunu kontrol et.");
+
             if (user.Status == AccountStatus.Suspended)
                 throw new ApiException("Your account has been suspended. Please contact administration.");
 
@@ -142,10 +145,15 @@ namespace CleanArchitecture.Infrastructure.Services
             await _userManager.AddToRoleAsync(user, Roles.STUDENT.ToString());
 
             user = await _userManager.FindByIdAsync(user.Id);
-            var confirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            await _userManager.ConfirmEmailAsync(user, confirmToken);
+            var confirmUri = await BuildConfirmEmailUri(user, origin);
+            await _emailService.SendAsync(new EmailRequest
+            {
+                To = user.Email,
+                Subject = "E-posta Doğrulama",
+                Body = EmailTemplates.ConfirmEmail(user.FullName, confirmUri)
+            });
 
-            return "Register success. You can now login.";
+            return "Kayıt başarılı. Lütfen e-postanı kontrol ederek hesabını doğrula.";
         }
 
         // ── Confirm Email ─────────────────────────────────────────────
