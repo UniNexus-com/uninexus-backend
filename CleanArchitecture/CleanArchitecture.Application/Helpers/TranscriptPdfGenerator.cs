@@ -3,6 +3,8 @@ using QuestPDF.Infrastructure;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using System;
+using System.IO;
+using System.Reflection;
 
 namespace CleanArchitecture.Core.Helpers
 {
@@ -31,14 +33,12 @@ namespace CleanArchitecture.Core.Helpers
                     // Header
                     page.Header().Background(Colors.White).Padding(30).BorderBottom(3).BorderColor(primaryColor).Row(row =>
                     {
-                        try 
-                        {
-                            row.ConstantItem(160).AlignMiddle().Image(@"G:\UniNexus\Architecture\uninexus-frontend\public\admin_logo.png");
-                        }
-                        catch
-                        {
-                            row.ConstantItem(160).AlignMiddle().Text("UniNexus").FontSize(32).FontColor(secondaryColor).SemiBold();
-                        }
+                        var logoStream = Assembly.GetExecutingAssembly()
+                            .GetManifestResourceStream("CleanArchitecture.Core.Resources.leader_logo_small.png");
+                        if (logoStream != null)
+                            row.ConstantItem(120).AlignMiddle().Image(logoStream);
+                        else
+                            row.ConstantItem(120).AlignMiddle().Text("UniNexus").FontSize(32).FontColor(secondaryColor).SemiBold();
 
                         row.RelativeItem().PaddingLeft(20).AlignMiddle().Column(col =>
                         {
