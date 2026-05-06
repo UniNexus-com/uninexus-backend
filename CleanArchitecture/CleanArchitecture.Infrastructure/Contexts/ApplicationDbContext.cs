@@ -82,7 +82,7 @@ namespace CleanArchitecture.Infrastructure.Contexts
                 entity.Property(e => e.StudentNumber)
                     .HasMaxLength(11)
                     .IsRequired(false);
-                entity.HasIndex(e => e.StudentNumber).IsUnique();
+                entity.HasIndex(e => e.StudentNumber).IsUnique().HasFilter("\"StudentNumber\" IS NOT NULL");
 
                 entity.HasMany(e => e.RefreshTokens)
                     .WithOne()

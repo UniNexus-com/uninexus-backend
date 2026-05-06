@@ -65,8 +65,6 @@ namespace CleanArchitecture.Infrastructure.Services
             if (!isValid)
                 throw new ApiException($"Invalid Credentials for '{request.Email}'.");
 
-            if (!user.EmailConfirmed)
-                throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
 
             if (user.Status == AccountStatus.Suspended)
                 throw new ApiException("Your account has been suspended. Please contact administration.");
@@ -143,15 +141,11 @@ namespace CleanArchitecture.Infrastructure.Services
 
             await _userManager.AddToRoleAsync(user, Roles.STUDENT.ToString());
 
-            var verificationUri = await BuildConfirmEmailUri(user, origin);
-            await _emailService.SendAsync(new EmailRequest
-            {
-                To = user.Email,
-                Subject = "Verify Your Account",
-                Body = EmailTemplates.ConfirmEmail(user.FullName, verificationUri)
-            });
+            user = await _userManager.FindByIdAsync(user.Id);
+            var confirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            await _userManager.ConfirmEmailAsync(user, confirmToken);
 
-            return "Register success. Please verify your email address.";
+            return "Register success. You can now login.";
         }
 
         // ── Confirm Email ─────────────────────────────────────────────
