@@ -12,7 +12,7 @@ namespace CleanArchitecture.Core.DTOs.Clubs
         public string RequesterUserId { get; set; }
         public string RequesterName { get; set; }
         public int SupporterCount { get; set; }
-        public int MaxSupporters { get; set; } = 50;
+        public int MaxSupporters { get; set; } = 2;
         public bool IsSupportedByMe { get; set; }
         public DateTime Created { get; set; }
     }

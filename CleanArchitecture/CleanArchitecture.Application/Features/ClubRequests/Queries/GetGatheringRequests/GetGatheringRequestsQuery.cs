@@ -63,7 +63,7 @@ namespace CleanArchitecture.Core.Features.ClubRequests.Queries.GetGatheringReque
                 RequesterUserId = r.RequesterUserId,
                 RequesterName = userNameMap.TryGetValue(r.RequesterUserId, out var name) ? name : string.Empty,
                 SupporterCount = r.SupporterCount,
-                MaxSupporters = 50,
+                MaxSupporters = 2,
                 IsSupportedByMe = supportedSet.Contains(r.Id),
                 Created = r.Created
             });

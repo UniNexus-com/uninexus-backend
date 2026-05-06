@@ -62,14 +62,14 @@ namespace CleanArchitecture.Core.Features.ClubRequests.Commands.SupportClubCreat
 
             creationRequest.SupporterCount += 1;
 
-            if (creationRequest.SupporterCount >= 50)
+            if (creationRequest.SupporterCount >= 2)
                 creationRequest.Status = "PENDING";
 
             _context.ClubCreationRequests.Update(creationRequest);
             await _context.SaveChangesAsync(cancellationToken);
 
             var message = creationRequest.Status == "PENDING"
-                ? "Support recorded! This request has reached 50 supporters and will now be reviewed by the administration."
+                ? "Support recorded! This request has reached 2 supporters and will now be reviewed by the administration."
                 : "Your support has been recorded successfully.";
 
             return new Response<string>("ok", message);

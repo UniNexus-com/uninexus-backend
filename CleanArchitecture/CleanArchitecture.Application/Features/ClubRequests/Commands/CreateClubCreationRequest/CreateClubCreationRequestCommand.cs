@@ -56,7 +56,17 @@ namespace CleanArchitecture.Core.Features.ClubRequests.Commands.CreateClubCreati
             await _context.ClubCreationRequests.AddAsync(entity, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return new Response<int>(entity.Id, "Your club creation request has been submitted. It needs 50 supporters before it can be reviewed by the administration.");
+            var creatorSupport = new ClubCreationRequestSupporter
+            {
+                ClubCreationRequestId = entity.Id,
+                UserId = currentUserId,
+                SupportedAt = System.DateTime.UtcNow
+            };
+            entity.SupporterCount = 1;
+            await _context.ClubCreationRequestSupporters.AddAsync(creatorSupport, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return new Response<int>(entity.Id, "Your club creation request has been submitted. It needs 2 supporters before it can be reviewed by the administration.");
         }
     }
 }
