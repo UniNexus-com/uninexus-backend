@@ -8,6 +8,9 @@ obj/
 *.userosscache
 *.sln.docstates
 
+# Temp
+CleanArchitecture/CleanArchitecture.WebApi/wwwroot/uploads/*
+
 # Visual Studio
 .vs/
 [Dd]ebug/
